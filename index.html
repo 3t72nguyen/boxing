@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Boxing Clock">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eceff2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c1015" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Shadow Boxing Clock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; overscroll-behavior: none; }
+button { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+</style>
+</head>
+<body>
+<style>
+/* Layout: the same on every round. Header, toggles, a status line with the Rounds button, then the stage: Back and Skip beside one big 3D clock button, with the Round wheel, Pause and Rest wheel tucked right under them. Coach call, combos and footwork follow and the page scrolls. The full guide opens as a sheet. */
+:root {
+  --bg: #eceff2;
+  --surface: #ffffff;
+  --fg: #13181e;
+  --muted: #55616e;
+  --line: #d3d9e0;
+  --work: #cf3526;
+  --rest: #1b7587;
+  --on-phase: #ffffff;
+  --L: #d92b1f;
+  --R: #1b5fe0;
+  --on-chip: #ffffff;
+  --n-hi: #ffffff; --n-lo: #e6ebf0; --n-edge: #a9b3bf; --btn-shadow: rgba(19, 24, 30, .28);
+  --inv-hi: #3d4959; --inv-lo: #1b222b; --inv-edge: #05080b; --on-inv: #ffffff;
+  --work-hi: #ee6857; --work-edge: #86190f; --rest-hi: #3f9fb2; --rest-edge: #0a4250;
+  --L-edge: #8d1a11; --R-edge: #12439c;
+  --well: #e3e8ed; --well-in: rgba(19, 24, 30, .28); --lens: rgba(255, 255, 255, .55);
+  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --body: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1015;
+    --surface: #141a21;
+    --fg: #eef1f4;
+    --muted: #8c98a5;
+    --line: #252e38;
+    --work: #ff5b49;
+    --rest: #41b4c8;
+    --on-phase: #0c1015;
+    --L: #ff5b49;
+    --R: #5a93ff;
+    --on-chip: #0c1015;
+    --n-hi: #2c3745; --n-lo: #1a222b; --n-edge: #04070a; --btn-shadow: rgba(0, 0, 0, .7);
+    --inv-hi: #ffffff; --inv-lo: #cdd5dd; --inv-edge: #66717e; --on-inv: #0c1015;
+    --work-hi: #ff8d7e; --work-edge: #a3281a; --rest-hi: #7fd3e4; --rest-edge: #1b6f80;
+    --L-edge: #a3281a; --R-edge: #2757b6;
+    --well: #0a0e13; --well-in: rgba(0, 0, 0, .7); --lens: rgba(255, 255, 255, .07);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1015;
+  --surface: #141a21;
+  --fg: #eef1f4;
+  --muted: #8c98a5;
+  --line: #252e38;
+  --work: #ff5b49;
+  --rest: #41b4c8;
+  --on-phase: #0c1015;
+  --L: #ff5b49;
+  --R: #5a93ff;
+  --on-chip: #0c1015;
+  --n-hi: #2c3745; --n-lo: #1a222b; --n-edge: #04070a; --btn-shadow: rgba(0, 0, 0, .7);
+  --inv-hi: #ffffff; --inv-lo: #cdd5dd; --inv-edge: #66717e; --on-inv: #0c1015;
+  --work-hi: #ff8d7e; --work-edge: #a3281a; --rest-hi: #7fd3e4; --rest-edge: #1b6f80;
+  --L-edge: #a3281a; --R-edge: #2757b6;
+  --well: #0a0e13; --well-in: rgba(0, 0, 0, .7); --lens: rgba(255, 255, 255, .07);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.4;
+  padding-block: 8px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app {
+  --phase: var(--work);
+  --phase-hi: var(--work-hi);
+  --phase-edge: var(--work-edge);
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app[data-phase="rest"] { --phase: var(--rest); --phase-hi: var(--rest-hi); --phase-edge: var(--rest-edge); }
+.app > * { flex: none; }
+
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--phase); outline-offset: 2px; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top-right { flex: none; display: flex; align-items: center; gap: 6px; }
+.session { font-family: var(--mono); font-weight: 600; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.session b { color: var(--fg); font-weight: 600; }
+.guide-btn {
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.toggles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tog {
+  min-height: 48px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tog:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Status line: the Rounds button opens the list of rounds */
+.status-box { position: relative; }
+.status { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rounds-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.rounds-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
+.rounds-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.status h2 { flex: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tag {
+  flex: none;
+  padding: 3px 10px;
+  border: 1.5px solid var(--phase);
+  color: var(--phase);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Rounds box */
+.rounds-panel {
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 16px 34px -8px var(--btn-shadow);
+}
+.rounds-panel[hidden] { display: none; }
+.chip {
+  min-height: 56px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  border-radius: 12px;
+}
+.chip .n { flex: none; min-width: 26px; text-align: center; font-family: var(--mono); font-weight: 600; font-size: 21px; font-variant-numeric: tabular-nums; }
+.chip .nm { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Stage: Back and Skip beside the clock button, Round / Pause / Rest right under them. Fixed size, so every round looks the same. */
+.stage {
+  --sw: clamp(78px, 20.5vw, 88px);
+  display: grid;
+  grid-template-columns: var(--sw) minmax(0, 1fr) var(--sw);
+  grid-template-rows: 54px 88px 8px 122px;
+  column-gap: 6px;
+}
+#back { grid-column: 1; grid-row: 2; }
+#skip { grid-column: 3; grid-row: 2; }
+.mc-round { grid-column: 1; grid-row: 4; align-self: start; }
+.mc-rest { grid-column: 3; grid-row: 4; align-self: start; }
+.side {
+  width: 100%;
+  min-height: 88px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.side svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.side:disabled { opacity: .38; cursor: not-allowed; }
+
+/* The whole clock is one big 3D button */
+.dial {
+  --dial-hi: #f0604d; --dial: #cf3526; --dial-lo: #a92416; --dial-edge: #7c170c;
+  --depth: 10px;
+  grid-column: 2;
+  grid-row: 1 / 5;
+  align-self: start;
+  justify-self: center;
+  position: relative;
+  width: min(100%, 196px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: radial-gradient(circle at 50% 26%, var(--dial-hi) 0%, var(--dial) 58%, var(--dial-lo) 100%);
+  box-shadow: 0 var(--depth) 0 var(--dial-edge), 0 calc(var(--depth) + 6px) 14px -3px var(--btn-shadow), inset 0 3px 0 rgba(255, 255, 255, .38), inset 0 -10px 16px rgba(0, 0, 0, .16);
+  transition: transform .07s ease, box-shadow .07s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.app[data-phase="rest"] .dial { --dial-hi: #43a6b9; --dial: #1b7587; --dial-lo: #135c6b; --dial-edge: #083c48; }
+.dial:active:not(:disabled) {
+  transform: translateY(var(--depth));
+  box-shadow: 0 0 0 var(--dial-edge), 0 2px 4px -1px var(--btn-shadow), inset 0 3px 0 rgba(255, 255, 255, .3), inset 0 -8px 14px rgba(0, 0, 0, .2);
+}
+.dial:disabled { opacity: .5; cursor: not-allowed; }
+.dial-in { position: absolute; inset: 0; container-type: size; border-radius: 50%; }
+.dial-in svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: rgba(255, 255, 255, .26); stroke-width: 10; }
+.ring-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 678.58;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset .1s linear;
+}
+.dial-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4cqmin; }
+.ph {
+  display: inline-block;
+  padding: 1.4cqmin 5.5cqmin;
+  border-radius: 99px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 9.6cqmin;
+  line-height: 1.1;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dial-edge);
+  background: linear-gradient(180deg, #ffffff 0%, #e4e9ee 100%);
+  box-shadow: 0 1.6cqmin 0 rgba(0, 0, 0, .32), inset 0 1px 0 #fff;
+}
+.time {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 28cqmin;
+  line-height: .9;
+  letter-spacing: .01em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1cqmin 0 rgba(0, 0, 0, .28);
+}
+.act {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 12.4cqmin;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 .5cqmin 0 var(--dial-edge), 0 1cqmin 0 var(--dial-edge), 0 1.6cqmin 0 var(--dial-edge), 0 2.8cqmin 3cqmin rgba(0, 0, 0, .38);
+}
+.dial.stop .act {
+  color: #ffd400;
+  text-shadow: 0 .5cqmin 0 #8a5d00, 0 1cqmin 0 #8a5d00, 0 1.6cqmin 0 #6b4700, 0 2.8cqmin 3cqmin rgba(0, 0, 0, .42);
+}
+.pause {
+  grid-column: 2;
+  grid-row: 4;
+  align-self: end;
+  justify-self: center;
+  width: min(180px, 100%);
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.pause:disabled { opacity: .38; cursor: not-allowed; }
+.blocks { display: flex; align-items: center; gap: 10px; }
+.blocks-bar { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.blocks-bar span { height: 5px; background: var(--line); }
+.blocks-bar span.done { background: var(--phase); }
+.blocks-bar span.now { background: var(--phase); opacity: .45; }
+.blocks-count { flex: none; min-width: 72px; text-align: right; font-size: 12px; font-weight: 600; color: var(--muted); }
+.blocks.off { visibility: hidden; }
+
+/* Coach */
+.coach-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.coach-live { min-height: 76px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; gap: 2px; }
+.coach-live p {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+/* Combos */
+.moves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.combo { display: flex; flex-direction: column; gap: 2px; }
+.combo-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.combo-tag { font-family: var(--mono); font-weight: 600; font-size: 11px; width: 12px; text-align: center; color: var(--muted); }
+.seq { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.p {
+  --ge: var(--L-edge);
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 58px;
+  line-height: 1;
+}
+.p.R { --ge: var(--R-edge); }
+.glove { width: 54px; height: 61px; display: block; overflow: visible; filter: drop-shadow(0 4px 0 var(--ge)) drop-shadow(0 8px 6px rgba(0, 0, 0, .3)); }
+.p.R .glove { transform: scaleX(-1); }
+.p b {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 0 var(--ge), 0 2px 0 var(--ge), 0 4px 3px rgba(0, 0, 0, .35);
+}
+.p i { margin-top: 9px; font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fg); }
+.m.foot { border: 1.5px solid var(--phase); color: var(--phase); }
+.m {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px dashed var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* Footwork line */
+.foot-note { display: flex; flex-direction: column; gap: 2px; }
+.foot-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.foot-note p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.say { min-height: 46px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+
+/* Sound check note */
+.toast {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 6;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.toast:empty { display: none; }
+
+/* Guide sheet */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  background: var(--bg);
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sheet-in { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sheet h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+.section-title { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.foot-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.foot-list li { display: flex; align-items: flex-start; gap: 12px; }
+.foot-list .p { flex: none; width: 48px; }
+.foot-list .glove { width: 44px; height: 50px; }
+.foot-list .p b { font-size: 24px; top: 7px; }
+.foot-list .p i { margin-top: 8px; font-size: 9px; }
+.foot-list .what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.foot-list strong { font-size: 15px; }
+.foot-list .t { font-size: 14px; color: var(--muted); max-width: 60ch; }
+.stance { margin: 12px 0 0; font-size: 13px; color: var(--muted); max-width: 65ch; }
+.moves-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.moves-list li { padding: 4px 12px; border: 1.5px dashed var(--muted); font-size: 14px; font-weight: 600; }
+.moves-list li.foot { border: 1.5px solid var(--phase); color: var(--phase); }
+
+/* 3D buttons: a raised face with a solid edge underneath. Pressing sinks the face onto its edge. */
+.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn {
+  --depth: 5px;
+  --face-hi: var(--n-hi);
+  --face-lo: var(--n-lo);
+  --edge: var(--n-edge);
+  --ink: var(--fg);
+  border: 0;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--face-hi) 0%, var(--face-lo) 100%);
+  box-shadow: 0 var(--depth) 0 var(--edge), 0 calc(var(--depth) + 4px) 10px -2px var(--btn-shadow), inset 0 1px 0 rgba(255, 255, 255, .5);
+  transition: transform .07s ease, box-shadow .07s ease;
+}
+:is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn):active:not(:disabled) {
+  transform: translateY(var(--depth));
+  box-shadow: 0 0 0 var(--edge), 0 1px 2px -1px var(--btn-shadow), inset 0 2px 4px rgba(0, 0, 0, .22);
+}
+:is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn):disabled {
+  opacity: .4;
+  box-shadow: 0 2px 0 var(--edge);
+}
+.guide-btn { --depth: 3px; }
+.say { --depth: 3px; }
+.tog { --depth: 3px; --ink: var(--muted); }
+.chip { --depth: 3px; }
+.rounds-btn { --depth: 5px; }
+.rounds-btn[aria-expanded="true"] { --face-hi: var(--inv-hi); --face-lo: var(--inv-lo); --edge: var(--inv-edge); --ink: var(--on-inv); }
+.chip.done { --face-hi: var(--n-lo); --face-lo: var(--n-lo); --ink: var(--muted); --depth: 1px; }
+.chip.current { --face-hi: var(--phase-hi); --face-lo: var(--phase); --edge: var(--phase-edge); --ink: var(--on-phase); --depth: 3px; }
+.sheet-btn.primary { --face-hi: var(--phase-hi); --face-lo: var(--phase); --edge: var(--phase-edge); --ink: var(--on-phase); }
+.tog[aria-pressed="true"] { --face-hi: var(--inv-hi); --face-lo: var(--inv-lo); --edge: var(--inv-edge); --ink: var(--on-inv); }
+.tog[aria-pressed="true"] {
+  transform: translateY(var(--depth));
+  box-shadow: 0 0 0 var(--edge), 0 1px 2px -1px var(--btn-shadow), inset 0 2px 5px rgba(0, 0, 0, .35);
+}
+
+/* Timer sheet: two 3D drum wheels */
+.hint, .summary, .unit { margin: 0; font-size: 14px; color: var(--muted); max-width: 65ch; }
+.summary { color: var(--fg); font-weight: 600; font-size: 15px; min-height: 22px; }
+.unit { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.wheels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.wheel-col { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.wheel {
+  position: relative;
+  height: 200px;
+  perspective: 560px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--well);
+  box-shadow: inset 0 4px 10px var(--well-in), inset 0 -2px 6px var(--well-in), 0 1px 0 rgba(255, 255, 255, .35);
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  outline-offset: 3px;
+}
+.wheel.grab { cursor: grabbing; }
+.wheel::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: calc(50% - 22px);
+  height: 44px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1.5px var(--phase);
+  z-index: 2;
+  pointer-events: none;
+}
+.wheel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--well) 0%, transparent 34%, transparent 66%, var(--well) 100%);
+}
+.drum { position: absolute; inset: 0; transform-style: preserve-3d; }
+.wheel-item {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 40px;
+  margin-top: -20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  will-change: transform, opacity;
+}
+.wheel-item.sel { color: var(--fg); }
+.sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-bottom: 6px; }
+.sheet-btn { min-height: 54px; padding: 0 8px; border-radius: 12px; font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .05em; text-transform: uppercase; }
+
+/* Round and Rest wheels sit right under Back and Skip */
+.mini-col { display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-width: 0; }
+.mini-col .coach-label { font-size: 12px; text-align: center; }
+.wheel.mini { height: 96px; perspective: 400px; border-radius: 16px; }
+.wheel.mini::before { left: 4px; right: 4px; top: calc(50% - 17px); height: 34px; border-radius: 8px; }
+.wheel.mini::after { background: linear-gradient(180deg, var(--well) 0%, transparent 30%, transparent 70%, var(--well) 100%); }
+.wheel.mini .wheel-item { height: 34px; margin-top: -17px; font-size: 26px; }
+.wheel:focus-visible { outline: 3px solid var(--phase); }
+.wheel.locked { opacity: .5; pointer-events: none; }
+.wheel.warn::before { box-shadow: inset 0 0 0 2px var(--L); }
+
+/* Visual cue on every round change */
+.flash { position: fixed; inset: 0; z-index: 4; background: var(--phase); opacity: 0; pointer-events: none; }
+.flash.go { animation: flash .8s ease-out; }
+@keyframes flash { 0% { opacity: .4; } 100% { opacity: 0; } }
+
+@media (max-width: 380px) {
+  h1 { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill { transition: none; }
+  .flash.go { animation: none; }
+  :is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn, .dial) { transition: none; }
+}
+</style>
+
+<main class="app" id="app" data-phase="work">
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7d6c"/><stop offset=".55" stop-color="#e2321f"/><stop offset="1" stop-color="#a51b10"/></linearGradient>
+      <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7aa3ff"/><stop offset=".55" stop-color="#2a66e6"/><stop offset="1" stop-color="#173e98"/></linearGradient>
+      <linearGradient id="gShade" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
+      <linearGradient id="gCuff" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9d5cb"/></linearGradient>
+      <symbol id="glove" viewBox="0 0 64 72">
+        <path d="M17 50 H52 V63 Q52 68 47 68 H22 Q17 68 17 63 Z" fill="url(#gCuff)"/>
+        <rect x="17" y="56" width="35" height="3.5" fill="#000" fill-opacity=".22"/>
+        <path d="M17 50 C13 46 12 41 12 36 C6 36 3 30 5 25 C7 20 13 21 15 24 C16 11 26 3 39 3 C53 3 61 13 61 28 C61 38 58 45 52 50 Z" stroke="#000" stroke-opacity=".3" stroke-width="1.2"/>
+        <path d="M17 50 C13 46 12 41 12 36 C6 36 3 30 5 25 C7 20 13 21 15 24 C16 11 26 3 39 3 C53 3 61 13 61 28 C61 38 58 45 52 50 Z" fill="url(#gShade)"/>
+        <path d="M15 24 C15 30 14 33 12 36" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M23 13 C29 7 40 6 47 10" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="4" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+  <div class="flash" id="flash" aria-hidden="true"></div>
+
+  <header class="top">
+    <h1>Boxing Clock</h1>
+    <div class="top-right">
+      <span class="session"><b id="elapsed">0:00</b> / <span id="total">41:30</span></span>
+      <button class="guide-btn" id="guideBtn" type="button">Guide</button>
+    </div>
+  </header>
+
+  <div class="toggles">
+    <button class="tog" id="tSound" type="button" aria-pressed="true">Sound on</button>
+    <button class="tog" id="tVoice" type="button" aria-pressed="true">Voice on</button>
+    <button class="tog" id="tTick" type="button" aria-pressed="true">Tick on</button>
+    <button class="tog" id="tTest" type="button">Test sound</button>
+  </div>
+
+  <div class="status-box">
+    <section class="status" aria-live="polite">
+      <button class="rounds-btn" id="roundsBtn" type="button" aria-expanded="false" aria-controls="strip">Rounds <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9 L12 15 L18 9"></path></svg></button>
+      <h2 id="focusTitle">Round 1 · Warm-up</h2>
+      <span class="tag" id="focusTag">Now</span>
+      <span id="roundNum" hidden></span><span id="timeSub" hidden></span>
+    </section>
+    <div class="rounds-panel" id="strip" role="group" aria-label="Jump to a round" hidden></div>
+  </div>
+
+  <div class="stage">
+    <button class="side" id="back" type="button" aria-label="Back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6 L9 12 L19 18"></path><path d="M5 5 V19"></path></svg>
+      <span>Back</span>
+    </button>
+    <button class="dial" id="start" type="button" aria-label="Start">
+      <span class="dial-in">
+        <svg viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="ring-track" cx="120" cy="120" r="108"></circle>
+          <circle class="ring-fill" id="ring" cx="120" cy="120" r="108"></circle>
+        </svg>
+        <span class="dial-text">
+          <span class="ph" id="phaseName">Work</span>
+          <span class="time" id="time">3:00</span>
+          <span class="act" id="act">Start</span>
+        </span>
+      </span>
+    </button>
+    <button class="side" id="skip" type="button" aria-label="Skip ahead">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6 L15 12 L5 18"></path><path d="M19 5 V19"></path></svg>
+      <span>Skip</span>
+    </button>
+    <div class="mini-col mc-round">
+      <span class="coach-label">Round</span>
+      <div class="wheel mini" id="wRound" tabindex="0" role="spinbutton" aria-label="Round time, minutes and seconds" aria-valuemin="0" aria-valuemax="3600"></div>
+    </div>
+    <button class="pause" id="pause" type="button" disabled>Pause</button>
+    <div class="mini-col mc-rest">
+      <span class="coach-label">Rest</span>
+      <div class="wheel mini" id="wRest" tabindex="0" role="spinbutton" aria-label="Rest time, minutes and seconds" aria-valuemin="0" aria-valuemax="3600"></div>
+    </div>
+  </div>
+
+  <div class="blocks" id="blocks"><div class="blocks-bar" id="blocksBar"></div><span class="blocks-count" id="blocksCount"></span></div>
+
+  <div class="coach-live">
+    <span class="coach-label">Coach calls</span>
+    <p id="coachLive"></p>
+  </div>
+
+  <ul class="moves" id="moves"></ul>
+
+  <div class="foot-note">
+    <div class="foot-head">
+      <span class="coach-label">Footwork</span>
+      <button class="say" id="sayBtn" type="button">Say it again</button>
+    </div>
+    <p id="coachText"></p>
+  </div>
+  <p id="cue" hidden></p>
+
+  
+
+  <div class="toast" id="audioNote" role="status"></div>
+
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-in">
+      <div class="sheet-head">
+        <h2>Guide</h2>
+        <button class="guide-btn" id="closeGuide" type="button">Close</button>
+      </div>
+      <div>
+        <h3 class="section-title">Footwork for each punch</h3>
+        <ul class="foot-list">
+          <li><span class="p L"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gL)"/></svg><b>L</b><i>jab</i></span><div class="what"><strong>Left jab</strong><span class="t">Step in with the front foot and let the back foot slide after it. Keep your feet shoulder width apart.</span></div></li>
+          <li><span class="p R"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gR)"/></svg><b>R</b><i>cross</i></span><div class="what"><strong>Right cross</strong><span class="t">Push off the back toes, turn the back heel out and rotate your hips. Step in as you throw to add power.</span></div></li>
+          <li><span class="p L"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gL)"/></svg><b>L</b><i>hook</i></span><div class="what"><strong>Left hook</strong><span class="t">Pivot on the ball of the front foot. Hips and shoulders turn together, elbow level with the fist.</span></div></li>
+          <li><span class="p R"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gR)"/></svg><b>R</b><i>hook</i></span><div class="what"><strong>Right hook</strong><span class="t">Pivot on the ball of the back foot and let the hips drive the punch. Keep the front knee soft.</span></div></li>
+          <li><span class="p L"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gL)"/></svg><b>L</b><i>upper</i></span><div class="what"><strong>Left uppercut</strong><span class="t">Dip your knees and sink slightly left, then drive up through the legs.</span></div></li>
+          <li><span class="p R"><svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#gR)"/></svg><b>R</b><i>upper</i></span><div class="what"><strong>Right uppercut</strong><span class="t">Sink onto the back leg, then drive up and turn the hips. Keep it short and tight.</span></div></li>
+        </ul>
+        <p class="stance">Step in: front foot first, back foot follows. Step back: back foot first, front foot follows. Never cross your feet. Pivot left or right: plant the ball of one foot and swing the other foot around it about 45 degrees. Written for an orthodox stance (left foot forward). If you fight southpaw, swap L and R.</p>
+      </div>
+      <div>
+        <h3 class="section-title">Footwork moves</h3>
+        <ul class="moves-list">
+          <li class="foot">Step in</li><li class="foot">Step back</li><li class="foot">Pivot left</li><li class="foot">Pivot right</li><li class="foot">Circle left or right</li><li class="foot">Lateral step</li><li class="foot">Shuffle in and out</li><li class="foot">Dip</li><li class="foot">Bounce</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="section-title">Defense moves</h3>
+        <ul class="moves-list">
+          <li>Slip left</li><li>Slip right</li><li>Roll</li><li>Duck</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  /* Punch codes: 1 left jab, 2 right cross, 3 left hook, 4 right hook, 5 left uppercut, 6 right uppercut.
+     Any other token is a movement. */
+  var PUNCH = {
+    '1': { h: 'L', s: 'jab', say: 'jab' },
+    '2': { h: 'R', s: 'cross', say: 'cross' },
+    '3': { h: 'L', s: 'hook', say: 'left hook' },
+    '4': { h: 'R', s: 'hook', say: 'right hook' },
+    '5': { h: 'L', s: 'upper', say: 'left uppercut' },
+    '6': { h: 'R', s: 'upper', say: 'right uppercut' }
+  };
+  var ROUNDS = [
+    { name: 'Warm-up',
+      combos: [{ label: 'Jabs', t: ['bounce', '1', '1', '1', 'step back'] }, { label: 'Half power', t: ['1', 'step in', '2', 'step back', 'circle left'] }, { label: 'Combo 2', t: ['1', '2', 'step back'] }],
+      coach: 'Stay light on your toes. Step in with the jab and let your back foot follow. Half power, smooth not hard.',
+      tips: ['Stay on the balls of your feet.', 'Feet shoulder width apart.', 'Hands up, chin down.'] },
+    { name: 'Footwork',
+      combos: [{ label: 'A', t: ['1', 'step in', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'circle left', '1', '2', 'circle right'] }, { label: 'Combo 1', t: ['1', '1', 'step in', '2', 'step back'] }],
+      coach: 'Every punch starts from your feet. Step first, then punch, never reach. After the cross, step back to reset.',
+      tips: ['Step first, then punch.', 'Do not cross your feet.', 'Push off the back foot.'] },
+    { name: 'Speed jabs',
+      combos: [{ label: 'A', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip left'] }, { label: 'B', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip right'] }, { label: 'Combo 9', t: ['1', '2', '1', '2', 'shuffle out'] }],
+      coach: 'Three quick jabs, then step in hard with the cross. The step adds the power. Step back out and slip. Every 30 seconds, sprint the jab for five seconds.',
+      tips: ['Snap the jab back to your chin.', 'Front foot steps first, back foot follows.', 'Light feet, fast hands.'],
+      marks: [{ at: 0, say: 'Sprint the jab!', combo: 'cycle' }, { at: 5, say: 'Settle. Smooth and sharp.' }, { at: 15, tip: 'cycle' }] },
+    { name: 'Slip and counter',
+      combos: [{ label: 'A', t: ['1', '2', 'slip left', 'slip right', 'step in', '2', '3', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'slip right', 'slip left', 'step in', '2', '3', '2', 'step back'] }, { label: 'Combo 3', t: ['1', 'step in', '2', '3', 'pivot left'] }],
+      coach: 'Slip with your knees, not your waist. When you come up, step into the counter. Cross, hook, cross, then step back out.',
+      tips: ['Bend the knees to slip.', 'Eyes forward, always.', 'Come up into the punch.'] },
+    { name: 'Hooks',
+      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '2', 'pivot left'] }, { label: 'B', t: ['2', '3', '2', '3', 'roll under', 'step back'] }, { label: 'Combo 5', t: ['step in', '2', '3', 'step back'] }, { label: 'Combo 6', t: ['step in', '2', '3', '2', 'circle left'] }],
+      coach: 'Hooks come from the feet. Pivot on the ball of the front foot and turn your hips with it. Pivot left after the last punch so you are never standing in front.',
+      tips: ['Hips turn first, then the elbow.', 'Pivot on the ball of the foot.', 'Other hand stays on your chin.'] },
+    { name: 'Uppercuts',
+      combos: [{ t: ['1', 'step in', '2', 'dip', '5', '6', 'roll', '3', '2', 'step back'] }, { label: 'Combo 7', t: ['1', 'step in', 'dip', '6', '3', 'pivot left'] }, { label: 'Combo 10', t: ['1', 'step in', 'dip', '5', '2', 'step back'] }],
+      coach: 'Dip your knees before each uppercut. The power comes up from your legs. Stay low through the combo, then step back out.',
+      tips: ['Sink first, then drive up.', 'Short and tight, no winding up.', 'Breathe out on every punch.'] },
+    { name: 'Agility',
+      combos: [{ label: 'A', t: ['1', 'step in', '2', 'lateral step', 'lateral step', '1'] }, { label: 'B', t: ['1', '2', '3', '2', 'pivot left 45°', 'step back'] }, { label: 'Combo 8', t: ['1', '3', '2', 'pivot right'] }],
+      coach: 'Throw, then move. Never stand still after a combo. Take two quick steps to the side, then come back in from a new angle.',
+      tips: ['Small, quick steps.', 'Stay on the balls of your feet.', 'Come back in at an angle.'] },
+    { name: 'Burst round',
+      combos: [{ label: '10 seconds all-out', t: ['1', 'step in', '2', '3', '2', 'step back'] }, { label: '20 seconds light', t: ['bounce', 'slip left', 'bounce', 'slip right'] }],
+      coach: 'Ten seconds flat out, then twenty seconds light. Keep your feet moving on the recovery.',
+      tips: ['Light feet.', 'Slip, do not stand.', 'Save it for the burst.'],
+      marks: [{ at: 0, say: 'Burst! All out!', combo: 0 }, { at: 10, say: 'Easy. Light feet.', combo: 1 }, { at: 25, say: 'Get ready.' }] },
+    { name: 'Defense to offense',
+      combos: [{ t: ['slip left', 'slip right', 'step in', '2'] }, { t: ['duck', 'step in', '3', '2'] }, { t: ['step back', '1', 'step in', '2'] }, { t: ['pivot right', '1', '2', '3'] }],
+      coach: 'Defend first, then punch back. Move your head, then step into the counter. Work through all four, then repeat.',
+      tips: ['Head moves before the hands.', 'Counter right after you move.', 'Reset your stance every time.'] },
+    { name: 'Long combos',
+      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '6', '3', '2', 'roll', 'step back'] }, { label: 'B', t: ['1', '2', 'dip', '5', '2', 'pivot right'] }, { label: 'Combo 4', t: ['1', '1', 'step in', '2', '3', 'step back'] }, { label: 'Combo 11', t: ['1', '2', '3', '2', 'pivot right', 'step back'] }],
+      coach: 'Link the punches in one flowing chain. Step in on the cross, roll out of trouble, pivot to the side at the end. Smooth first, faster every 30 seconds.',
+      tips: ['Smooth first, then speed up.', 'Feet reset between combos.', 'Breathe, do not hold it.'] },
+    { name: 'Speed endurance',
+      combos: [{ t: ['1', '2', '1', '2', 'shuffle in', 'shuffle out'] }, { label: 'Combo 12', t: ['step in', '3', '2', '3', 'step back'] }],
+      coach: 'Rapid fire with quick feet. Shuffle in as you throw, shuffle out as you finish. Every 30 seconds, sprint for five seconds.',
+      tips: ['Fast feet, relaxed shoulders.', 'Keep the punches short.', 'Breathe out with every punch.'],
+      marks: [{ at: 0, say: 'Sprint!', combo: 'cycle' }, { at: 5, say: 'Settle, keep moving.' }, { at: 15, tip: 'cycle' }] },
+    { name: 'Finisher',
+      combos: [{ label: 'Build your own', t: ['1', 'step in', '2', '3', '2', 'pivot left', 'slip right', '1', '2', 'step back'] }],
+      coach: 'No rules. Mix everything you know. Punch, move, punch. In the last thirty seconds, give me everything.',
+      tips: ['Keep your hands up.', 'Move your feet between combos.', 'Do not stop.'],
+      marks: [{ at: 0, block: 5, say: 'Last thirty seconds. Everything you have. Go!' }, { at: 0, combo: 'cycle' }, { at: 15, tip: 'cycle' }] }
+  ];
+  var CUES = [
+    'Speed comes from relaxing, not tensing. Snap each punch out and back.',
+    'Return every punch to your chin before the next one.',
+    'Move your feet before you throw, and reset your stance after every combo.',
+    'Keep your chin tucked and your knees slightly bent.'
+  ];
+  var REST_TIP = 'Shake out your arms, breathe slowly and take a sip of water.';
+  var N = ROUNDS.length, C = 678.58, STEPS = 121, REST_STEPS = 241;
+  var WORK = 180, REST = 30;   /* seconds; set from the Timer wheels */
+  var phases = [], workAt = [], TOTAL = 0;
+
+  function buildPhases() {
+    phases = []; workAt = [];
+    ROUNDS.forEach(function (r, i) {
+      workAt.push(phases.length);
+      phases.push({ type: 'work', round: i, dur: WORK });
+      if (i < N - 1 && REST > 0) phases.push({ type: 'rest', round: i, dur: REST });
+    });
+    TOTAL = phases.reduce(function (s, p) { return s + p.dur; }, 0);
+  }
+  function loadTimer() {
+    try {
+      var j = JSON.parse(localStorage.getItem('boxingClock.timer2') || 'null');
+      if (j && j.work >= 30 && j.work <= 3600 && j.work % 30 === 0 && j.rest >= 0 && j.rest <= 3600 && j.rest % 15 === 0) { WORK = j.work; REST = j.rest; return; }
+      var o = JSON.parse(localStorage.getItem('boxingClock.timer') || 'null');   /* older saves, kept in 30 s units */
+      if (o && o.r >= 1 && o.r < 121 && o.s >= 0 && o.s < 121 && o.r % 1 === 0 && o.s % 1 === 0) { WORK = o.r * 30; REST = o.s * 30; }
+    } catch (e) {}
+  }
+  function saveTimer() {
+    try { localStorage.setItem('boxingClock.timer2', JSON.stringify({ work: WORK, rest: REST })); } catch (e) {}
+  }
+  loadTimer();
+  buildPhases();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var app = $('app'), phaseName = $('phaseName'), roundNum = $('roundNum'), timeEl = $('time'),
+      timeSub = $('timeSub'), ring = $('ring'), blocks = $('blocks'), blocksBar = $('blocksBar'),
+      blocksCount = $('blocksCount'), backBtn = $('back'), startBtn = $('start'), pauseBtn = $('pause'),
+      skipBtn = $('skip'), elapsedEl = $('elapsed'), focusTitle = $('focusTitle'), focusTag = $('focusTag'),
+      movesEl = $('moves'), cueEl = $('cue'), strip = $('strip'), roundsBtn = $('roundsBtn'), actEl = $('act'), sayBtn = $('sayBtn'),
+      tSound = $('tSound'), tVoice = $('tVoice'), tTick = $('tTick'), tTest = $('tTest'), audioNote = $('audioNote'),
+      coachLive = $('coachLive'), coachText = $('coachText'), flashEl = $('flash');
+
+  $('total').textContent = fmtLong(TOTAL);
+
+  var idx = 0, remaining = WORK * 1000, endAt = 0, running = false, started = false, finished = false;
+  var muted = false, voiceOn = true, tickOn = true;
+  var lastSec = null, timer = null, cardKey = '', ac = null, wl = null, speakTimer = null;
+  var hasSpeech = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+
+  function fmt(s) {
+    s = Math.max(0, Math.floor(s));
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function fmtLong(s) {
+    s = Math.max(0, Math.floor(s));
+    var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+    return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  /* ---------- Sound ----------
+     Tones are synthesized into WAV data and played through audio elements (the media channel,
+     so a phone's ringer switch does not mute them). Web Audio is the fallback. */
+  var SR = 22050, pool = [], poolI = 0, wavs = {};
+  var DEFS = {
+    tick:  [[{ f: 1500, a: 0.3, d: 60 }], 0.04],
+    beep:  [[{ f: 700, a: 0.7, d: 0 }], 0.14],
+    block: [[{ f: 440, a: 0.6, d: 0 }], 0.16],
+    warn:  [[{ f: 600, a: 0.7, d: 0 }], 0.1],
+    bell:  [[{ f: 1320, a: 0.45, d: 3 }, { f: 2640, a: 0.22, d: 5 }, { f: 660, a: 0.28, d: 2.5 }], 1.4]
+  };
+  function makeWav(parts, dur) {
+    var n = Math.floor(SR * dur), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    function w(o, str) { for (var i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); }
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, 'data'); v.setUint32(40, n * 2, true);
+    for (var i = 0; i < n; i++) {
+      var t = i / SR, x = 0;
+      for (var k = 0; k < parts.length; k++) {
+        var q = parts[k];
+        x += q.a * Math.sin(2 * Math.PI * q.f * t) * Math.exp(-t * q.d);
+      }
+      x *= Math.min(1, t / 0.004) * Math.min(1, (dur - t) / 0.01);
+      v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x)) * 32767, true);
+    }
+    var bytes = new Uint8Array(buf), bin = '';
+    for (var j = 0; j < bytes.length; j += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(j, j + 0x8000));
+    return 'data:audio/wav;base64,' + btoa(bin);
+  }
+  function getWav(name) {
+    if (!wavs[name]) wavs[name] = makeWav(DEFS[name][0], DEFS[name][1]);
+    return wavs[name];
+  }
+  function webFallback(name) {
+    if (!ac) return;
+    try {
+      var t = ac.currentTime, def = DEFS[name];
+      def[0].forEach(function (q) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = q.f;
+        g.gain.setValueAtTime(q.a * 0.6, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + def[1]);
+        o.connect(g); g.connect(ac.destination);
+        o.start(t); o.stop(t + def[1] + 0.03);
+      });
+    } catch (e) {}
+  }
+  function unlockAudio() {
+    try {
+      if (!ac) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) ac = new AC(); }
+      if (ac && ac.state === 'suspended') ac.resume();
+      if (ac) {
+        var sb = ac.createBuffer(1, 1, 22050), ss = ac.createBufferSource();
+        ss.buffer = sb; ss.connect(ac.destination); ss.start(0);
+      }
+    } catch (e) {}
+    try {
+      if (!pool.length) {
+        for (var i = 0; i < 6; i++) pool.push(new Audio());
+      }
+      pool.forEach(function (el) {
+        el.src = getWav('tick');
+        el.volume = 0;
+        var pr = el.play();
+        if (pr && pr.catch) pr.catch(function () {});
+      });
+    } catch (e) {}
+  }
+  function play(name, delay) {
+    if (muted) return;
+    function go() {
+      if (muted) return;
+      try {
+        if (pool.length) {
+          var el = pool[poolI++ % pool.length];
+          el.src = getWav(name);
+          el.volume = 1;
+          var pr = el.play();
+          if (pr && pr.catch) pr.catch(function () { webFallback(name); });
+          return;
+        }
+      } catch (e) {}
+      webFallback(name);
+    }
+    if (delay) setTimeout(go, delay * 1000); else go();
+  }
+  function flash(type) {
+    try { flashEl.classList.remove('go'); void flashEl.offsetWidth; flashEl.classList.add('go'); } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate(type === 'work' ? [250] : [120, 80, 120]); } catch (e) {}
+  }
+  function phaseSound(type) {
+    flash(type);
+    if (type === 'work') { play('bell'); }
+    else { play('bell'); play('bell', 0.32); }
+  }
+
+  function secondCue(sec) {
+    var p = phases[idx];
+    var elapsed = p.dur - sec;
+    if (p.type === 'work' && elapsed > 0 && sec > 3 && sec !== 10) coachMark(p.round, elapsed);
+    if (sec >= 1 && sec <= 3) { play('beep'); return; }
+    if (p.type === 'work' && sec === 10) {
+      play('warn'); play('warn', 0.18);
+      speak('Ten seconds', 300);
+      return;
+    }
+    if (p.type === 'rest' && sec === 5) { speak('Get ready', 0); return; }
+    if (p.type === 'work' && elapsed > 0 && elapsed % 30 === 0) { play('block'); return; }
+    if (tickOn) play('tick');
+  }
+
+  /* ---------- Voice ---------- */
+  function cancelSpeech() {
+    clearTimeout(speakTimer);
+    try { if (hasSpeech) window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  /* A natural voice: prefer premium / enhanced / Siri English voices (Australian first), speak one
+     sentence at a time so the pauses sound human, and keep the pace a little slower than default. */
+  var voicePick = null;
+  var BAD_VOICE = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|hysterical|princess|pipe/i;
+  function pickVoice() {
+    if (voicePick) return voicePick;
+    var list = [];
+    try { list = window.speechSynthesis.getVoices() || []; } catch (e) {}
+    var best = null, bs = -1;
+    list.forEach(function (v) {
+      if (!/^en[-_]/i.test(v.lang) || BAD_VOICE.test(v.name)) return;
+      var n = v.name + ' ' + (v.voiceURI || ''), sc = 0;
+      if (/premium/i.test(n)) sc += 12; else if (/enhanced|neural|natural/i.test(n)) sc += 10; else if (/siri/i.test(n)) sc += 8;
+      if (/en[-_]AU/i.test(v.lang)) sc += 4; else if (/en[-_](GB|US)/i.test(v.lang)) sc += 3; else sc += 1;
+      if (v.localService) sc += 1;
+      if (sc > bs) { bs = sc; best = v; }
+    });
+    if (best) voicePick = best;
+    return best;
+  }
+  try { if (hasSpeech) window.speechSynthesis.addEventListener('voiceschanged', function () { voicePick = null; }); } catch (e) {}
+  function speak(text, delay, force, rate) {
+    if (!hasSpeech) return;
+    if (!force && (muted || !voiceOn)) return;
+    clearTimeout(speakTimer);
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    speakTimer = setTimeout(function () {
+      try {
+        var parts = String(text).replace(/\s+/g, ' ').match(/[^.!?]+[.!?]*/g) || [String(text)];
+        var v = pickVoice();
+        parts.forEach(function (part) {
+          part = part.trim();
+          if (!part) return;
+          var u = new SpeechSynthesisUtterance(part);
+          if (v) { u.voice = v; u.lang = v.lang; }
+          u.rate = rate || 0.97;
+          u.pitch = 1;
+          u.volume = 1;
+          window.speechSynthesis.speak(u);
+        });
+      } catch (e) {}
+    }, delay || 0);
+  }
+  function spokenCombo(c) {
+    return c.t.map(function (x) { return PUNCH[x] ? PUNCH[x].say : x.replace('°', ' degrees'); }).join(', ') + '.';
+  }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function roundScript(i) {
+    var r = ROUNDS[i];
+    return 'Round ' + (i + 1) + '. ' + r.name + '. ' + r.coach + (r.combos.length ? ' First combo. ' + spokenCombo(r.combos[0]) : '');
+  }
+  function announce(p) {
+    if (p.type === 'work') speak(roundScript(p.round), 1000);
+    else speak('Rest. Shake it out. Next up, round ' + (p.round + 2) + ', ' + ROUNDS[p.round + 1].name + '. ' + ROUNDS[p.round + 1].coach, 800);
+  }
+
+  /* Coach calls during a round: each mark fires at a second inside a 30-second block. */
+  var DEFAULT_MARKS = [{ at: 0, combo: 'cycle' }, { at: 15, tip: 'cycle' }];
+  function showCall(text) { coachLive.textContent = cap(text); }
+  function coachMark(ri, elapsed) {
+    var r = ROUNDS[ri], marks = r.marks || DEFAULT_MARKS;
+    var bi = Math.floor(elapsed / 30), pos = elapsed % 30;
+    for (var i = 0; i < marks.length; i++) {
+      var m = marks[i];
+      if (m.at !== pos) continue;
+      if (m.block !== undefined && m.block !== bi) continue;
+      var parts = [];
+      if (m.say) parts.push(m.say);
+      if (m.combo !== undefined && r.combos.length) {
+        var ci = m.combo === 'cycle' ? bi % r.combos.length : m.combo;
+        parts.push(spokenCombo(r.combos[ci]));
+      }
+      if (m.tip && r.tips && r.tips.length) parts.push(r.tips[bi % r.tips.length]);
+      if (!parts.length) continue;
+      var text = parts.join(' ');
+      showCall(text);
+      speak(text, pos === 0 ? 450 : 0, false, 1.04);
+      return;
+    }
+  }
+
+  /* ---------- Wake lock ---------- */
+  function lock() {
+    try {
+      if ('wakeLock' in navigator && !wl) {
+        navigator.wakeLock.request('screen').then(function (l) {
+          wl = l;
+          l.addEventListener('release', function () { wl = null; });
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  function unlock() { try { if (wl) wl.release(); } catch (e) {} wl = null; }
+  document.addEventListener('visibilitychange', function () {
+    if (running && document.visibilityState === 'visible') { lock(); tick(); }
+  });
+
+  /* ---------- Clock logic ---------- */
+  function tick() {
+    if (!running) return;
+    var left = endAt - Date.now();
+    var entered = false;
+    while (left <= 0) {
+      if (idx >= phases.length - 1) { finish(); return; }
+      idx++;
+      endAt += phases[idx].dur * 1000;
+      left = endAt - Date.now();
+      lastSec = null;
+      entered = true;
+    }
+    remaining = left;
+    if (entered) { phaseSound(phases[idx].type); announce(phases[idx]); }
+    var sec = Math.ceil(left / 1000);
+    if (sec !== lastSec) { lastSec = sec; if (!entered) secondCue(sec); }
+    render();
+  }
+
+  function setPhase(i) {
+    idx = i;
+    finished = false;
+    remaining = phases[i].dur * 1000;
+    lastSec = null;
+    cancelSpeech();
+    if (running) {
+      endAt = Date.now() + remaining;
+      phaseSound(phases[i].type);
+      announce(phases[i]);
+    }
+    render();
+  }
+
+  function finish() {
+    running = false; finished = true; remaining = 0;
+    clearInterval(timer); timer = null;
+    unlock();
+    play('bell'); play('bell', 0.4); play('bell', 0.8);
+    speak('Session complete. Great work.', 1600);
+    render();
+  }
+
+  function start() {
+    unlockAudio();
+    if (hasSpeech) {
+      try { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) {}
+    }
+    if (finished) { setPhase(0); }
+    var fresh = remaining === phases[idx].dur * 1000;
+    running = true; started = true;
+    endAt = Date.now() + remaining;
+    if (fresh) { phaseSound(phases[idx].type); announce(phases[idx]); }
+    lock();
+    clearInterval(timer);
+    timer = setInterval(tick, 100);
+    render();
+  }
+
+  function pause() {
+    if (!running) return;
+    remaining = Math.max(0, endAt - Date.now());
+    running = false;
+    clearInterval(timer); timer = null;
+    cancelSpeech();
+    unlock();
+    render();
+  }
+
+  function stop() {
+    syncTimer();
+    running = false; started = false; finished = false;
+    clearInterval(timer); timer = null;
+    cancelSpeech();
+    unlock();
+    idx = 0; remaining = phases[0].dur * 1000; lastSec = null; cardKey = '';
+    render();
+  }
+
+  function back() {
+    if (finished) { setPhase(phases.length - 1); return; }
+    var p = phases[idx];
+    var left = running ? Math.max(0, endAt - Date.now()) : remaining;
+    var elapsed = p.dur * 1000 - left;
+    if (elapsed > 3000 || idx === 0) setPhase(idx);
+    else setPhase(idx - 1);
+  }
+
+  function skip() {
+    if (finished) return;
+    if (idx >= phases.length - 1) {
+      if (running) finish(); else { remaining = 0; finished = true; render(); }
+      return;
+    }
+    setPhase(idx + 1);
+  }
+
+  /* ---------- Rendering ---------- */
+  function token(x) {
+    var s = document.createElement('span');
+    var P = PUNCH[x];
+    if (P) {
+      s.className = 'p ' + P.h;
+      s.innerHTML = '<svg class="glove" viewBox="0 0 64 72" aria-hidden="true"><use href="#glove" fill="url(#g' + P.h + ')"/></svg><b>' + P.h + '</b><i>' + P.s + '</i>';
+      s.setAttribute('aria-label', P.say);
+    } else {
+      s.className = 'm ' + (/^(slip|roll|duck)/.test(x) ? 'def' : 'foot');
+      s.textContent = x;
+    }
+    return s;
+  }
+
+  function setMoves(r) {
+    movesEl.innerHTML = '';
+    r.combos.forEach(function (c) {
+      var li = document.createElement('li');
+      li.className = 'combo';
+      var short = c.label && c.label.length <= 2;
+      if (c.label && !short) {
+        var l = document.createElement('span');
+        l.className = 'combo-label';
+        l.textContent = c.label;
+        li.appendChild(l);
+      }
+      var row = document.createElement('div');
+      row.className = 'seq';
+      if (short) {
+        var tg = document.createElement('span');
+        tg.className = 'combo-tag';
+        tg.textContent = c.label;
+        row.appendChild(tg);
+      }
+      c.t.forEach(function (x) { row.appendChild(token(x)); });
+      li.appendChild(row);
+      movesEl.appendChild(li);
+    });
+  }
+
+  function cardRound() {
+    var p = phases[idx];
+    return p.type === 'work' ? p.round : p.round + 1;
+  }
+
+  function renderCard(p) {
+    var key = idx + ':' + finished;
+    if (key === cardKey) return;
+    cardKey = key;
+    if (finished) {
+      focusTitle.textContent = 'Session complete';
+      focusTag.textContent = 'Done';
+      setMoves({ combos: [] });
+      coachLive.textContent = 'Good work. That is 12 rounds.';
+      coachText.textContent = 'Walk it off, stretch your shoulders and calves, and drink water.';
+      cueEl.textContent = 'Press Back to return to the last round.';
+      sayBtn.hidden = true;
+      return;
+    }
+    var show = cardRound();
+    focusTitle.textContent = 'Round ' + (show + 1) + ' · ' + ROUNDS[show].name;
+    focusTag.textContent = p.type === 'work' ? 'Now' : 'Up next';
+    setMoves(ROUNDS[show]);
+    coachText.textContent = ROUNDS[show].coach;
+    coachLive.textContent = p.type === 'work'
+      ? (ROUNDS[show].combos.length ? cap(spokenCombo(ROUNDS[show].combos[0])) : 'Freestyle.')
+      : 'Shake it out and breathe. Next: round ' + (show + 1) + ', ' + ROUNDS[show].name + '.';
+    cueEl.textContent = p.type === 'work' ? CUES[show % CUES.length] : REST_TIP;
+    sayBtn.hidden = !hasSpeech;
+  }
+
+  function render() {
+    var p = phases[idx];
+    var durMs = p.dur * 1000;
+    var secs = finished ? 0 : Math.ceil(remaining / 1000);
+    timeEl.textContent = fmt(secs);
+    ring.style.strokeDashoffset = (C * (1 - (finished ? 0 : remaining / durMs))).toFixed(2);
+    app.setAttribute('data-phase', finished ? 'rest' : p.type);
+
+    if (finished) {
+      phaseName.textContent = 'Done';
+      roundNum.textContent = N + ' rounds complete';
+    } else {
+      phaseName.textContent = p.type === 'work' ? 'Work' : 'Rest';
+      roundNum.textContent = p.type === 'work' ? 'Round ' + (p.round + 1) + ' of ' + N : 'Next: round ' + (p.round + 2) + ' of ' + N;
+    }
+
+    var elapsedSec = p.dur - remaining / 1000;
+    var nBlocks = Math.max(1, Math.ceil(p.dur / 30));
+    var segs = Math.min(nBlocks, 12);
+    if (blocksBar.children.length !== segs) {
+      blocksBar.innerHTML = '';
+      for (var b = 0; b < segs; b++) blocksBar.appendChild(document.createElement('span'));
+      blocksBar.style.gridTemplateColumns = 'repeat(' + segs + ', 1fr)';
+    }
+    var inWork = !finished && p.type === 'work';
+    blocks.classList.toggle('off', !inWork);
+    var curBlock = Math.min(nBlocks - 1, Math.floor(elapsedSec / 30));
+    var curSeg = Math.min(segs - 1, Math.floor(elapsedSec / p.dur * segs));
+    for (var k = 0; k < segs; k++) {
+      var cls = '';
+      if (inWork) cls = k < curSeg ? 'done' : (k === curSeg ? 'now' : '');
+      blocksBar.children[k].className = cls;
+    }
+    blocksCount.textContent = inWork ? 'Block ' + (curBlock + 1) + ' of ' + nBlocks : '';
+
+    var before = 0;
+    for (var i = 0; i < idx; i++) before += phases[i].dur;
+    elapsedEl.textContent = fmtLong(finished ? TOTAL : before + elapsedSec);
+
+    var active = started && !finished;
+    var actLabel = active ? 'Stop' : (finished ? 'Restart' : (roundZero ? 'Set time' : 'Start'));
+    actEl.textContent = actLabel;
+    startBtn.classList.toggle('stop', active);
+    startBtn.setAttribute('aria-label', actLabel + ', ' + phaseName.textContent + ' ' + fmt(secs));
+    pauseBtn.disabled = !active;
+    pauseBtn.textContent = running ? 'Pause' : (active ? 'Resume' : 'Pause');
+    backBtn.disabled = !finished && idx === 0 && remaining === durMs;
+    skipBtn.disabled = finished;
+    wRoundEl.classList.toggle('locked', active);
+    wRestEl.classList.toggle('locked', active);
+    wRoundEl.tabIndex = active ? -1 : 0;
+    wRestEl.tabIndex = active ? -1 : 0;
+    wRoundEl.classList.toggle('warn', roundZero);
+    startBtn.disabled = roundZero && !active;
+
+    renderCard(p);
+
+    var curRound = finished ? N : p.round;
+    var chips = strip.children;
+    for (var c = 0; c < chips.length; c++) {
+      var state = '';
+      if (finished || c < curRound || (p.type === 'rest' && c === curRound)) state = ' done';
+      if (!finished && c === curRound && p.type === 'work') state = ' current';
+      chips[c].className = 'chip' + state;
+      if (state === ' current') chips[c].setAttribute('aria-current', 'step'); else chips[c].removeAttribute('aria-current');
+    }
+  }
+
+  function setToggle(btn, label, on) {
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.textContent = label + (on ? ' on' : ' off');
+  }
+
+  /* ---------- Wiring ---------- */
+  ROUNDS.forEach(function (r, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.innerHTML = '<span class="n">' + (i + 1) + '</span><span class="nm"></span>';
+    b.lastChild.textContent = r.name;
+    b.setAttribute('aria-label', 'Go to round ' + (i + 1) + ', ' + r.name);
+    b.addEventListener('click', function () { setPhase(workAt[i]); closeRounds(); });
+    strip.appendChild(b);
+  });
+  function closeRounds() { strip.hidden = true; roundsBtn.setAttribute('aria-expanded', 'false'); }
+  roundsBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = strip.hidden;
+    strip.hidden = !open;
+    roundsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function (e) { if (!strip.hidden && !strip.contains(e.target)) closeRounds(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !strip.hidden) { closeRounds(); roundsBtn.focus(); } });
+  startBtn.addEventListener('click', function () { if (started && !finished) stop(); else start(); });
+  pauseBtn.addEventListener('click', function () { if (running) pause(); else if (started && !finished) start(); });
+  backBtn.addEventListener('click', back);
+  skipBtn.addEventListener('click', skip);
+  sayBtn.addEventListener('click', function () {
+    if (finished) return;
+    speak(roundScript(cardRound()), 0, true);
+  });
+  tSound.addEventListener('click', function () {
+    muted = !muted;
+    setToggle(tSound, 'Sound', !muted);
+    if (muted) cancelSpeech();
+  });
+  tVoice.addEventListener('click', function () {
+    voiceOn = !voiceOn;
+    setToggle(tVoice, 'Voice', voiceOn);
+    if (!voiceOn) cancelSpeech();
+  });
+  tTick.addEventListener('click', function () {
+    tickOn = !tickOn;
+    setToggle(tTick, 'Tick', tickOn);
+  });
+  tTest.addEventListener('click', function () {
+    unlockAudio();
+    muted = false; setToggle(tSound, 'Sound', true);
+    play('bell');
+    setTimeout(function () { webFallback('beep'); }, 1600);
+    if (hasSpeech) speak('Sound check. Jab, cross, slip left.', 2600, true);
+    var voices = 0;
+    try { voices = window.speechSynthesis.getVoices().length; } catch (e) {}
+    var note = 'Playing 1) a bell, 2) a beep, 3) ' + (hasSpeech ? 'a voice line' : 'no voice (not supported here)') + '. Web Audio: ' + (ac ? ac.state : 'unavailable') + '. Voices: ' + (hasSpeech ? voices : 'none') + '.';
+    audioNote.textContent = note;
+    try {
+      var el = pool[5];
+      el.src = getWav('warn'); el.volume = 0;
+      var pr = el.play();
+      if (pr && pr.then) {
+        pr.then(function () { audioNote.textContent = note + ' Media player: ok.'; })
+          .catch(function (e) { audioNote.textContent = note + ' Media player: blocked (' + ((e && e.name) || 'error') + ').'; });
+      }
+    } catch (e) { audioNote.textContent = note + ' Media player: error.'; }
+  });
+  if (!hasSpeech) { tVoice.disabled = true; tVoice.setAttribute('aria-pressed', 'false'); tVoice.textContent = 'Voice unavailable'; }
+
+  /* ---------- Round / Rest wheels: looping 3D drums, 0:00 to 60:00 in 0:30 steps ---------- */
+  function makeWheel(el, o) {
+    var H = o.H || 40, STEP = o.STEP || 24, SLOTS = o.SLOTS || 4;
+    var R = H / (2 * Math.tan(STEP * Math.PI / 360));
+    var count = o.count;
+    var drum = document.createElement('div');
+    drum.className = 'drum';
+    drum.style.transform = 'translateZ(' + (-R).toFixed(1) + 'px)';
+    var nodes = [];
+    for (var k = 0; k < SLOTS * 2 + 1; k++) {
+      var nd = document.createElement('div');
+      nd.className = 'wheel-item';
+      nd.setAttribute('aria-hidden', 'true');
+      drum.appendChild(nd);
+      nodes.push(nd);
+    }
+    el.appendChild(drum);
+    var pos = 0, value = 0, raf = 0, drag = null, wheelT = 0, tgt = null;
+    function mod(n) { return ((n % count) + count) % count; }
+    function paint() {
+      var base = Math.round(pos);
+      for (var k = 0; k < nodes.length; k++) {
+        var idx = base + k - SLOTS, d = idx - pos, a = d * STEP, n = nodes[k];
+        if (Math.abs(a) > 96) { n.style.visibility = 'hidden'; continue; }
+        n.style.visibility = 'visible';
+        n.style.transform = 'rotateX(' + (-a).toFixed(2) + 'deg) translateZ(' + R.toFixed(1) + 'px)';
+        n.style.opacity = Math.pow(Math.max(0, Math.cos(a * Math.PI / 180)), 2.4).toFixed(3);
+        var v = mod(idx), sel = Math.abs(d) < 0.5;
+        if (n._v !== v) { n._v = v; n.textContent = o.format(v); }
+        if (n._s !== sel) { n._s = sel; n.classList.toggle('sel', sel); }
+      }
+    }
+    function commit() {
+      var v = mod(Math.round(pos));
+      el.setAttribute('aria-valuenow', String(v * (o.sec || 30)));
+      el.setAttribute('aria-valuetext', o.format(v));
+      if (v !== value) { value = v; if (o.onChange) o.onChange(v); }
+    }
+    function stopAnim() { cancelAnimationFrame(raf); raf = 0; tgt = null; }
+    function animateTo(target, ms) {
+      stopAnim();
+      var from = pos, t0 = performance.now(), dur = ms || 220;
+      if (from === target) { commit(); return; }
+      tgt = target;
+      (function step(now) {
+        var t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+        pos = from + (target - from) * e;
+        paint();
+        if (t < 1) raf = requestAnimationFrame(step);
+        else { pos = target; tgt = null; paint(); commit(); }
+      })(t0);
+    }
+    function snap() { animateTo(Math.round(pos), 170); }
+    function fling(v) {
+      stopAnim();
+      var last = performance.now();
+      (function step(now) {
+        var dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        pos += v * dt;
+        v *= Math.exp(-3.4 * dt);
+        paint();
+        if (Math.abs(v) > 1.5) raf = requestAnimationFrame(step); else snap();
+      })(last);
+    }
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button > 0) return;
+      stopAnim(); clearTimeout(wheelT);
+      drag = { id: e.pointerId, y: e.clientY, s: [{ t: performance.now(), y: e.clientY }] };
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      el.classList.add('grab');
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      pos -= (e.clientY - drag.y) / H;
+      drag.y = e.clientY;
+      var now = performance.now();
+      drag.s.push({ t: now, y: e.clientY });
+      while (drag.s.length > 2 && now - drag.s[0].t > 90) drag.s.shift();
+      paint();
+    });
+    function release(e) {
+      if (!drag || (e && e.pointerId !== drag.id)) return;
+      var s = drag.s, now = performance.now(), v = 0;
+      if (s.length > 1 && now - s[s.length - 1].t < 80) {
+        var dt = (s[s.length - 1].t - s[0].t) / 1000;
+        if (dt > 0.01) v = -((s[s.length - 1].y - s[0].y) / H) / dt;
+      }
+      drag = null;
+      el.classList.remove('grab');
+      v = Math.max(-45, Math.min(45, v));
+      if (Math.abs(v) > 3) fling(v); else snap();
+    }
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      stopAnim();
+      pos += e.deltaY / 60;
+      paint();
+      clearTimeout(wheelT);
+      wheelT = setTimeout(snap, 140);
+    }, { passive: false });
+    el.addEventListener('keydown', function (e) {
+      var step = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 }[e.key];
+      if (step !== undefined) { e.preventDefault(); animateTo((tgt !== null ? tgt : Math.round(pos)) + step, 140); }
+      else if (e.key === 'Home') { e.preventDefault(); api.set(0); }
+      else if (e.key === 'End') { e.preventDefault(); api.set(count - 1); }
+    });
+    var api = {
+      set: function (i, instant) {
+        stopAnim();
+        var target = i + count * Math.round((pos - i) / count);
+        if (instant) { pos = target; paint(); commit(); } else animateTo(target, 260);
+      },
+      get: function () { return value; }
+    };
+    paint();
+    commit();
+    return api;
+  }
+
+  var wRoundEl = $('wRound'), wRestEl = $('wRest');
+  var roundSel = WORK / 30, restSel = REST / 15, wheelsReady = false, roundZero = false;
+  function syncTimer() {
+    var r = roundSel * 30, sx = restSel * 15;
+    roundZero = roundSel === 0;
+    if (!roundZero && (r !== WORK || sx !== REST)) {
+      WORK = r; REST = sx;
+      buildPhases();
+      saveTimer();
+      $('total').textContent = fmtLong(TOTAL);
+    }
+  }
+  function wheelChanged() {
+    if (!wheelsReady) return;
+    if (started && !finished) return;   /* applied at the next Stop */
+    stop();
+  }
+  var wRound = makeWheel(wRoundEl, { count: STEPS, sec: 30, H: 34, STEP: 28, SLOTS: 3, format: function (v) { return fmt(v * 30); }, onChange: function (v) { roundSel = v; wheelChanged(); } });
+  var wRest = makeWheel(wRestEl, { count: REST_STEPS, sec: 15, H: 34, STEP: 28, SLOTS: 3, format: function (v) { return fmt(v * 15); }, onChange: function (v) { restSel = v; wheelChanged(); } });
+  wRound.set(roundSel, true);
+  wRest.set(restSel, true);
+  wheelsReady = true;
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') $('sheet').hidden = true;
+  });
+
+  var sheet = $('sheet');
+  $('guideBtn').addEventListener('click', function () { sheet.hidden = false; sheet.scrollTop = 0; });
+  $('closeGuide').addEventListener('click', function () { sheet.hidden = true; });
+  audioNote.addEventListener('click', function () { audioNote.textContent = ''; });
+
+  render();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
