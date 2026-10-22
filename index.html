@@ -23,7 +23,7 @@ button { -webkit-user-select: none; user-select: none; touch-action: manipulatio
 </head>
 <body>
 <style>
-/* Layout: the same on every round. Header, toggles, a status line with the Rounds button, then the stage: Back and Skip beside one big 3D clock button, with the Round wheel, Pause and Rest wheel tucked right under them. Coach call, combos and footwork follow and the page scrolls. The full guide opens as a sheet. */
+/* Layout: the same on every round. Header, toggles, a status line with the Rounds button, then the stage: Back and Skip beside one big clock button, with the Round wheel, Pause and Rest wheel tucked right under them. Coach call, combos and footwork follow and the page scrolls. The full guide opens as a sheet. */
 :root {
   --bg: #eceff2;
   --surface: #ffffff;
@@ -120,7 +120,7 @@ h1 {
   margin: 0;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 26px;
+  font-size: 23px;
   line-height: 1;
   letter-spacing: .02em;
   text-transform: uppercase;
@@ -131,27 +131,34 @@ h1 {
   text-overflow: ellipsis;
 }
 .top-right { flex: none; display: flex; align-items: center; gap: 6px; }
-.session { font-family: var(--mono); font-weight: 600; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.session { font-family: var(--mono); font-weight: 600; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .session b { color: var(--fg); font-weight: 600; }
 .guide-btn {
   min-height: 46px;
-  padding: 0 16px;
+  padding: 0 12px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .toggles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .tog {
-  min-height: 48px;
-  padding: 0 4px;
-  border: 1px solid var(--line);
+  min-height: 60px;
+  padding: 0 2px;
   border-radius: 12px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 12.5px;
   font-weight: 600;
+  line-height: 1.1;
   white-space: nowrap;
 }
+.tog .ic { width: 22px; height: 22px; }
 .tog:disabled { opacity: .4; cursor: not-allowed; }
 
 /* Status line: the Rounds button opens the list of rounds */
@@ -171,8 +178,9 @@ h1 {
   letter-spacing: .06em;
   text-transform: uppercase;
 }
-.rounds-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
-.rounds-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.rounds-btn .ic { width: 24px; height: 24px; }
+.rounds-btn .chev { width: 16px; height: 16px; stroke-width: 3.4; transition: transform .15s; }
+.rounds-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .status h2 { flex: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .tag {
   flex: none;
@@ -199,7 +207,6 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 16px;
-  box-shadow: 0 16px 34px -8px var(--btn-shadow);
 }
 .rounds-panel[hidden] { display: none; }
 .chip {
@@ -247,10 +254,9 @@ h1 {
 .side svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .side:disabled { opacity: .38; cursor: not-allowed; }
 
-/* The whole clock is one big 3D button */
+/* The whole clock is one big flat button */
 .dial {
   --dial-hi: #f0604d; --dial: #cf3526; --dial-lo: #a92416; --dial-edge: #7c170c;
-  --depth: 10px;
   grid-column: 2;
   grid-row: 1 / 5;
   align-self: start;
@@ -262,20 +268,16 @@ h1 {
   border: 0;
   border-radius: 50%;
   color: #fff;
-  background: radial-gradient(circle at 50% 26%, var(--dial-hi) 0%, var(--dial) 58%, var(--dial-lo) 100%);
-  box-shadow: 0 var(--depth) 0 var(--dial-edge), 0 calc(var(--depth) + 6px) 14px -3px var(--btn-shadow), inset 0 3px 0 rgba(255, 255, 255, .38), inset 0 -10px 16px rgba(0, 0, 0, .16);
-  transition: transform .07s ease, box-shadow .07s ease;
+  background: var(--dial);
+  transition: background-color .1s ease, transform .1s ease;
   -webkit-user-select: none;
   user-select: none;
 }
 .app[data-phase="rest"] .dial { --dial-hi: #43a6b9; --dial: #1b7587; --dial-lo: #135c6b; --dial-edge: #083c48; }
-.dial:active:not(:disabled) {
-  transform: translateY(var(--depth));
-  box-shadow: 0 0 0 var(--dial-edge), 0 2px 4px -1px var(--btn-shadow), inset 0 3px 0 rgba(255, 255, 255, .3), inset 0 -8px 14px rgba(0, 0, 0, .2);
-}
+.dial:active:not(:disabled) { background: var(--dial-lo); transform: scale(.98); }
 .dial:disabled { opacity: .5; cursor: not-allowed; }
 .dial-in { position: absolute; inset: 0; container-type: size; border-radius: 50%; }
-.dial-in svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.dial-in > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
 .ring-track { fill: none; stroke: rgba(255, 255, 255, .26); stroke-width: 10; }
 .ring-fill {
   fill: none;
@@ -298,9 +300,12 @@ h1 {
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--dial-edge);
-  background: linear-gradient(180deg, #ffffff 0%, #e4e9ee 100%);
-  box-shadow: 0 1.6cqmin 0 rgba(0, 0, 0, .32), inset 0 1px 0 #fff;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 2cqmin;
 }
+.ph .ic { width: 9.6cqmin; height: 9.6cqmin; }
 .time {
   font-family: var(--display);
   font-weight: 800;
@@ -308,7 +313,6 @@ h1 {
   line-height: .9;
   letter-spacing: .01em;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 1cqmin 0 rgba(0, 0, 0, .28);
 }
 .act {
   font-family: var(--display);
@@ -318,12 +322,12 @@ h1 {
   letter-spacing: .08em;
   text-transform: uppercase;
   color: #fff;
-  text-shadow: 0 .5cqmin 0 var(--dial-edge), 0 1cqmin 0 var(--dial-edge), 0 1.6cqmin 0 var(--dial-edge), 0 2.8cqmin 3cqmin rgba(0, 0, 0, .38);
+  display: inline-flex;
+  align-items: center;
+  gap: 2.4cqmin;
 }
-.dial.stop .act {
-  color: #ffd400;
-  text-shadow: 0 .5cqmin 0 #8a5d00, 0 1cqmin 0 #8a5d00, 0 1.6cqmin 0 #6b4700, 0 2.8cqmin 3cqmin rgba(0, 0, 0, .42);
-}
+.act .ic { width: 11cqmin; height: 11cqmin; }
+.dial.stop .act { color: #ffd400; }
 .pause {
   grid-column: 2;
   grid-row: 4;
@@ -339,7 +343,12 @@ h1 {
   font-size: 24px;
   letter-spacing: .06em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
+.pause .ic { width: 24px; height: 24px; }
 .pause:disabled { opacity: .38; cursor: not-allowed; }
 .blocks { display: flex; align-items: center; gap: 10px; }
 .blocks-bar { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
@@ -415,7 +424,7 @@ h1 {
   font-size: 15px;
   line-height: 1.4;
 }
-.say { min-height: 46px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+.say { min-height: 46px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 
 /* Sound check note */
 .toast {
@@ -465,43 +474,29 @@ h1 {
 .moves-list li { padding: 4px 12px; border: 1.5px dashed var(--muted); font-size: 14px; font-weight: 600; }
 .moves-list li.foot { border: 1.5px solid var(--phase); color: var(--phase); }
 
-/* 3D buttons: a raised face with a solid edge underneath. Pressing sinks the face onto its edge. */
+/* Buttons are flat: a filled face, a hairline border, and a quick tint on press. Only the gloves are 3D. */
 .guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn {
-  --depth: 5px;
-  --face-hi: var(--n-hi);
-  --face-lo: var(--n-lo);
-  --edge: var(--n-edge);
+  --face: var(--surface);
   --ink: var(--fg);
-  border: 0;
+  border: 1px solid var(--line);
   color: var(--ink);
-  background: linear-gradient(180deg, var(--face-hi) 0%, var(--face-lo) 100%);
-  box-shadow: 0 var(--depth) 0 var(--edge), 0 calc(var(--depth) + 4px) 10px -2px var(--btn-shadow), inset 0 1px 0 rgba(255, 255, 255, .5);
-  transition: transform .07s ease, box-shadow .07s ease;
+  background: var(--face);
+  box-shadow: none;
+  transition: background-color .1s ease, transform .1s ease;
 }
 :is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn):active:not(:disabled) {
-  transform: translateY(var(--depth));
-  box-shadow: 0 0 0 var(--edge), 0 1px 2px -1px var(--btn-shadow), inset 0 2px 4px rgba(0, 0, 0, .22);
+  background: var(--line);
+  transform: scale(.97);
 }
-:is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn):disabled {
-  opacity: .4;
-  box-shadow: 0 2px 0 var(--edge);
-}
-.guide-btn { --depth: 3px; }
-.say { --depth: 3px; }
-.tog { --depth: 3px; --ink: var(--muted); }
-.chip { --depth: 3px; }
-.rounds-btn { --depth: 5px; }
-.rounds-btn[aria-expanded="true"] { --face-hi: var(--inv-hi); --face-lo: var(--inv-lo); --edge: var(--inv-edge); --ink: var(--on-inv); }
-.chip.done { --face-hi: var(--n-lo); --face-lo: var(--n-lo); --ink: var(--muted); --depth: 1px; }
-.chip.current { --face-hi: var(--phase-hi); --face-lo: var(--phase); --edge: var(--phase-edge); --ink: var(--on-phase); --depth: 3px; }
-.sheet-btn.primary { --face-hi: var(--phase-hi); --face-lo: var(--phase); --edge: var(--phase-edge); --ink: var(--on-phase); }
-.tog[aria-pressed="true"] { --face-hi: var(--inv-hi); --face-lo: var(--inv-lo); --edge: var(--inv-edge); --ink: var(--on-inv); }
-.tog[aria-pressed="true"] {
-  transform: translateY(var(--depth));
-  box-shadow: 0 0 0 var(--edge), 0 1px 2px -1px var(--btn-shadow), inset 0 2px 5px rgba(0, 0, 0, .35);
-}
+:is(.guide-btn, .tog, .side, .pause, .say, .chip, .rounds-btn, .sheet-btn):disabled { opacity: .4; }
+.tog { --ink: var(--muted); }
+.chip.done { --face: var(--bg); --ink: var(--muted); }
+.chip.current { --face: var(--phase); --ink: var(--on-phase); border-color: var(--phase); }
+.sheet-btn.primary { --face: var(--phase); --ink: var(--on-phase); border-color: var(--phase); }
+.rounds-btn[aria-expanded="true"], .tog[aria-pressed="true"] { --face: var(--inv-lo); --ink: var(--on-inv); border-color: var(--inv-lo); }
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Timer sheet: two 3D drum wheels */
+/* Round and Rest wheels: flat looping pickers */
 .hint, .summary, .unit { margin: 0; font-size: 14px; color: var(--muted); max-width: 65ch; }
 .summary { color: var(--fg); font-weight: 600; font-size: 15px; min-height: 22px; }
 .unit { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -510,11 +505,9 @@ h1 {
 .wheel {
   position: relative;
   height: 200px;
-  perspective: 560px;
   overflow: hidden;
   border-radius: 18px;
   background: var(--well);
-  box-shadow: inset 0 4px 10px var(--well-in), inset 0 -2px 6px var(--well-in), 0 1px 0 rgba(255, 255, 255, .35);
   touch-action: none;
   cursor: grab;
   -webkit-user-select: none;
@@ -543,7 +536,7 @@ h1 {
   pointer-events: none;
   background: linear-gradient(180deg, var(--well) 0%, transparent 34%, transparent 66%, var(--well) 100%);
 }
-.drum { position: absolute; inset: 0; transform-style: preserve-3d; }
+.drum { position: absolute; inset: 0; }
 .wheel-item {
   position: absolute;
   left: 0;
@@ -554,8 +547,6 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
   font-family: var(--display);
   font-weight: 800;
   font-size: 30px;
@@ -570,8 +561,9 @@ h1 {
 
 /* Round and Rest wheels sit right under Back and Skip */
 .mini-col { display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-width: 0; }
-.mini-col .coach-label { font-size: 12px; text-align: center; }
-.wheel.mini { height: 96px; perspective: 400px; border-radius: 16px; }
+.mini-col .coach-label { font-size: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.mini-col .coach-label .ic { width: 16px; height: 16px; }
+.wheel.mini { height: 96px; border-radius: 16px; }
 .wheel.mini::before { left: 4px; right: 4px; top: calc(50% - 17px); height: 34px; border-radius: 8px; }
 .wheel.mini::after { background: linear-gradient(180deg, var(--well) 0%, transparent 30%, transparent 70%, var(--well) 100%); }
 .wheel.mini .wheel-item { height: 34px; margin-top: -17px; font-size: 26px; }
@@ -601,6 +593,23 @@ h1 {
       <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7aa3ff"/><stop offset=".55" stop-color="#2a66e6"/><stop offset="1" stop-color="#173e98"/></linearGradient>
       <linearGradient id="gShade" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
       <linearGradient id="gCuff" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9d5cb"/></linearGradient>
+      <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></symbol>
+      <symbol id="i-sound-off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9.5l4.5 5M21.5 9.5l-4.5 5"/></symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+      <symbol id="i-mic-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M4 4l16 16"/></symbol>
+      <symbol id="i-tick" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9.5 2.5h5"/></symbol>
+      <symbol id="i-tick-off" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9.5 2.5h5M4 4l16 16"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21.5a2 2 0 0 0 4 0"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24"><rect fill="currentColor" x="5.5" y="5.5" width="13" height="13" rx="2"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><rect fill="currentColor" x="6" y="4.5" width="4.2" height="15" rx="1.2"/><rect fill="currentColor" x="13.8" y="4.5" width="4.2" height="15" rx="1.2"/></symbol>
+      <symbol id="i-replay" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+      <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9M9.5 2.5h5M18.5 6l1.5-1.5"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></symbol>
       <symbol id="glove" viewBox="0 0 64 72">
         <path d="M17 50 H52 V63 Q52 68 47 68 H22 Q17 68 17 63 Z" fill="url(#gCuff)"/>
         <rect x="17" y="56" width="35" height="3.5" fill="#000" fill-opacity=".22"/>
@@ -617,20 +626,20 @@ h1 {
     <h1>Boxing Clock</h1>
     <div class="top-right">
       <span class="session"><b id="elapsed">0:00</b> / <span id="total">41:30</span></span>
-      <button class="guide-btn" id="guideBtn" type="button">Guide</button>
+      <button class="guide-btn" id="guideBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg><span>Guide</span></button>
     </div>
   </header>
 
   <div class="toggles">
-    <button class="tog" id="tSound" type="button" aria-pressed="true">Sound on</button>
-    <button class="tog" id="tVoice" type="button" aria-pressed="true">Voice on</button>
-    <button class="tog" id="tTick" type="button" aria-pressed="true">Tick on</button>
-    <button class="tog" id="tTest" type="button">Test sound</button>
+    <button class="tog" id="tSound" type="button" aria-pressed="true" data-ic="sound"><svg class="ic" aria-hidden="true"><use href="#i-sound"/></svg><span>Sound on</span></button>
+    <button class="tog" id="tVoice" type="button" aria-pressed="true" data-ic="mic"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg><span>Voice on</span></button>
+    <button class="tog" id="tTick" type="button" aria-pressed="true" data-ic="tick"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg><span>Tick on</span></button>
+    <button class="tog" id="tTest" type="button"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span>Test sound</span></button>
   </div>
 
   <div class="status-box">
     <section class="status" aria-live="polite">
-      <button class="rounds-btn" id="roundsBtn" type="button" aria-expanded="false" aria-controls="strip">Rounds <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9 L12 15 L18 9"></path></svg></button>
+      <button class="rounds-btn" id="roundsBtn" type="button" aria-expanded="false" aria-controls="strip"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg><span>Rounds</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9 L12 15 L18 9"></path></svg></button>
       <h2 id="focusTitle">Round 1 · Warm-up</h2>
       <span class="tag" id="focusTag">Now</span>
       <span id="roundNum" hidden></span><span id="timeSub" hidden></span>
@@ -650,9 +659,9 @@ h1 {
           <circle class="ring-fill" id="ring" cx="120" cy="120" r="108"></circle>
         </svg>
         <span class="dial-text">
-          <span class="ph" id="phaseName">Work</span>
+          <span class="ph" id="phaseName"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><span>Work</span></span>
           <span class="time" id="time">3:00</span>
-          <span class="act" id="act">Start</span>
+          <span class="act" id="act"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>Start</span></span>
         </span>
       </span>
     </button>
@@ -661,12 +670,12 @@ h1 {
       <span>Skip</span>
     </button>
     <div class="mini-col mc-round">
-      <span class="coach-label">Round</span>
+      <span class="coach-label"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>Round</span>
       <div class="wheel mini" id="wRound" tabindex="0" role="spinbutton" aria-label="Round time, minutes and seconds" aria-valuemin="0" aria-valuemax="3600"></div>
     </div>
-    <button class="pause" id="pause" type="button" disabled>Pause</button>
+    <button class="pause" id="pause" type="button" disabled><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span></button>
     <div class="mini-col mc-rest">
-      <span class="coach-label">Rest</span>
+      <span class="coach-label"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>Rest</span>
       <div class="wheel mini" id="wRest" tabindex="0" role="spinbutton" aria-label="Rest time, minutes and seconds" aria-valuemin="0" aria-valuemax="3600"></div>
     </div>
   </div>
@@ -683,7 +692,7 @@ h1 {
   <div class="foot-note">
     <div class="foot-head">
       <span class="coach-label">Footwork</span>
-      <button class="say" id="sayBtn" type="button">Say it again</button>
+      <button class="say" id="sayBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Say it again</span></button>
     </div>
     <p id="coachText"></p>
   </div>
@@ -697,7 +706,7 @@ h1 {
     <div class="sheet-in">
       <div class="sheet-head">
         <h2>Guide</h2>
-        <button class="guide-btn" id="closeGuide" type="button">Close</button>
+        <button class="guide-btn" id="closeGuide" type="button"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg><span>Close</span></button>
       </div>
       <div>
         <h3 class="section-title">Footwork for each punch</h3>
@@ -742,54 +751,54 @@ h1 {
   };
   var ROUNDS = [
     { name: 'Warm-up',
-      combos: [{ label: 'Jabs', t: ['bounce', '1', '1', '1', 'step back'] }, { label: 'Half power', t: ['1', 'step in', '2', 'step back', 'circle left'] }, { label: 'Combo 2', t: ['1', '2', 'step back'] }],
+      combos: [{ label: 'Jabs', t: ['bounce', '1', '1', '1', 'step back'] }, { label: 'Half power', t: ['1', 'step in', '2', 'step back', 'circle left'] }, { label: 'Combo 2', t: ['1', '2', 'step back'] }, { label: 'Combo 1', t: ['1', '1', 'step in', '2', 'step back'] }],
       coach: 'Stay light on your toes. Step in with the jab and let your back foot follow. Half power, smooth not hard.',
       tips: ['Stay on the balls of your feet.', 'Feet shoulder width apart.', 'Hands up, chin down.'] },
     { name: 'Footwork',
-      combos: [{ label: 'A', t: ['1', 'step in', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'circle left', '1', '2', 'circle right'] }, { label: 'Combo 1', t: ['1', '1', 'step in', '2', 'step back'] }],
+      combos: [{ label: 'A', t: ['1', 'step in', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'circle left', '1', '2', 'circle right'] }, { label: 'Combo 1', t: ['1', '1', 'step in', '2', 'step back'] }, { label: 'Combo 2', t: ['1', '2', 'step back'] }],
       coach: 'Every punch starts from your feet. Step first, then punch, never reach. After the cross, step back to reset.',
       tips: ['Step first, then punch.', 'Do not cross your feet.', 'Push off the back foot.'] },
     { name: 'Speed jabs',
-      combos: [{ label: 'A', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip left'] }, { label: 'B', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip right'] }, { label: 'Combo 9', t: ['1', '2', '1', '2', 'shuffle out'] }],
+      combos: [{ label: 'A', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip left'] }, { label: 'B', t: ['1', '1', '1', 'step in', '2', 'step back', 'slip right'] }, { label: 'Combo 9', t: ['1', '2', '1', '2', 'shuffle out'] }, { label: 'Combo 3', t: ['1', 'step in', '2', '3', 'pivot left'] }],
       coach: 'Three quick jabs, then step in hard with the cross. The step adds the power. Step back out and slip. Every 30 seconds, sprint the jab for five seconds.',
       tips: ['Snap the jab back to your chin.', 'Front foot steps first, back foot follows.', 'Light feet, fast hands.'],
       marks: [{ at: 0, say: 'Sprint the jab!', combo: 'cycle' }, { at: 5, say: 'Settle. Smooth and sharp.' }, { at: 15, tip: 'cycle' }] },
     { name: 'Slip and counter',
-      combos: [{ label: 'A', t: ['1', '2', 'slip left', 'slip right', 'step in', '2', '3', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'slip right', 'slip left', 'step in', '2', '3', '2', 'step back'] }, { label: 'Combo 3', t: ['1', 'step in', '2', '3', 'pivot left'] }],
+      combos: [{ label: 'A', t: ['1', '2', 'slip left', 'slip right', 'step in', '2', '3', '2', 'step back'] }, { label: 'B', t: ['1', '2', 'slip right', 'slip left', 'step in', '2', '3', '2', 'step back'] }, { label: 'Combo 3', t: ['1', 'step in', '2', '3', 'pivot left'] }, { label: 'Combo 4', t: ['1', '1', 'step in', '2', '3', 'step back'] }],
       coach: 'Slip with your knees, not your waist. When you come up, step into the counter. Cross, hook, cross, then step back out.',
       tips: ['Bend the knees to slip.', 'Eyes forward, always.', 'Come up into the punch.'] },
     { name: 'Hooks',
-      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '2', 'pivot left'] }, { label: 'B', t: ['2', '3', '2', '3', 'roll under', 'step back'] }, { label: 'Combo 5', t: ['step in', '2', '3', 'step back'] }, { label: 'Combo 6', t: ['step in', '2', '3', '2', 'circle left'] }],
+      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '2', 'pivot left'] }, { label: 'B', t: ['2', '3', '2', '3', 'roll under', 'step back'] }, { label: 'Combo 6', t: ['step in', '2', '3', '2', 'circle left'] }, { label: 'Combo 5', t: ['step in', '2', '3', 'step back'] }],
       coach: 'Hooks come from the feet. Pivot on the ball of the front foot and turn your hips with it. Pivot left after the last punch so you are never standing in front.',
       tips: ['Hips turn first, then the elbow.', 'Pivot on the ball of the foot.', 'Other hand stays on your chin.'] },
     { name: 'Uppercuts',
-      combos: [{ t: ['1', 'step in', '2', 'dip', '5', '6', 'roll', '3', '2', 'step back'] }, { label: 'Combo 7', t: ['1', 'step in', 'dip', '6', '3', 'pivot left'] }, { label: 'Combo 10', t: ['1', 'step in', 'dip', '5', '2', 'step back'] }],
+      combos: [{ t: ['1', 'step in', '2', 'dip', '5', '6', 'roll', '3', '2', 'step back'] }, { label: 'Combo 7', t: ['1', 'step in', 'dip', '6', '3', 'pivot left'] }, { label: 'Combo 10', t: ['1', 'step in', 'dip', '5', '2', 'step back'] }, { label: 'Combo 6', t: ['step in', '2', '3', '2', 'circle left'] }],
       coach: 'Dip your knees before each uppercut. The power comes up from your legs. Stay low through the combo, then step back out.',
       tips: ['Sink first, then drive up.', 'Short and tight, no winding up.', 'Breathe out on every punch.'] },
     { name: 'Agility',
-      combos: [{ label: 'A', t: ['1', 'step in', '2', 'lateral step', 'lateral step', '1'] }, { label: 'B', t: ['1', '2', '3', '2', 'pivot left 45°', 'step back'] }, { label: 'Combo 8', t: ['1', '3', '2', 'pivot right'] }],
+      combos: [{ label: 'A', t: ['1', 'step in', '2', 'lateral step', 'lateral step', '1'] }, { label: 'B', t: ['1', '2', '3', '2', 'pivot left 45°', 'step back'] }, { label: 'Combo 8', t: ['1', '3', '2', 'pivot right'] }, { label: 'Combo 7', t: ['1', 'step in', 'dip', '6', '3', 'pivot left'] }],
       coach: 'Throw, then move. Never stand still after a combo. Take two quick steps to the side, then come back in from a new angle.',
       tips: ['Small, quick steps.', 'Stay on the balls of your feet.', 'Come back in at an angle.'] },
     { name: 'Burst round',
-      combos: [{ label: '10 seconds all-out', t: ['1', 'step in', '2', '3', '2', 'step back'] }, { label: '20 seconds light', t: ['bounce', 'slip left', 'bounce', 'slip right'] }],
+      combos: [{ label: '10 seconds all-out', t: ['1', 'step in', '2', '3', '2', 'step back'] }, { label: '20 seconds light', t: ['bounce', 'slip left', 'bounce', 'slip right'] }, { label: 'Combo 9', t: ['1', '2', '1', '2', 'shuffle out'] }, { label: 'Combo 8', t: ['1', '3', '2', 'pivot right'] }],
       coach: 'Ten seconds flat out, then twenty seconds light. Keep your feet moving on the recovery.',
       tips: ['Light feet.', 'Slip, do not stand.', 'Save it for the burst.'],
-      marks: [{ at: 0, say: 'Burst! All out!', combo: 0 }, { at: 10, say: 'Easy. Light feet.', combo: 1 }, { at: 25, say: 'Get ready.' }] },
+      marks: [{ at: 0, say: 'Burst! All out!', combo: [0, 2, 3] }, { at: 10, say: 'Easy. Light feet.', combo: 1 }, { at: 25, say: 'Get ready.' }] },
     { name: 'Defense to offense',
-      combos: [{ t: ['slip left', 'slip right', 'step in', '2'] }, { t: ['duck', 'step in', '3', '2'] }, { t: ['step back', '1', 'step in', '2'] }, { t: ['pivot right', '1', '2', '3'] }],
-      coach: 'Defend first, then punch back. Move your head, then step into the counter. Work through all four, then repeat.',
+      combos: [{ t: ['slip left', 'slip right', 'step in', '2'] }, { t: ['duck', 'step in', '3', '2'] }, { t: ['step back', '1', 'step in', '2'] }, { t: ['pivot right', '1', '2', '3'] }, { label: 'Combo 8', t: ['1', '3', '2', 'pivot right'] }, { label: 'Combo 9', t: ['1', '2', '1', '2', 'shuffle out'] }],
+      coach: 'Defend first, then punch back. Move your head, then step into the counter. Work through every one, then repeat.',
       tips: ['Head moves before the hands.', 'Counter right after you move.', 'Reset your stance every time.'] },
     { name: 'Long combos',
-      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '6', '3', '2', 'roll', 'step back'] }, { label: 'B', t: ['1', '2', 'dip', '5', '2', 'pivot right'] }, { label: 'Combo 4', t: ['1', '1', 'step in', '2', '3', 'step back'] }, { label: 'Combo 11', t: ['1', '2', '3', '2', 'pivot right', 'step back'] }],
+      combos: [{ label: 'A', t: ['1', 'step in', '2', '3', '6', '3', '2', 'roll', 'step back'] }, { label: 'B', t: ['1', '2', 'dip', '5', '2', 'pivot right'] }, { label: 'Combo 4', t: ['1', '1', 'step in', '2', '3', 'step back'] }, { label: 'Combo 11', t: ['1', '2', '3', '2', 'pivot right', 'step back'] }, { label: 'Combo 10', t: ['1', 'step in', 'dip', '5', '2', 'step back'] }],
       coach: 'Link the punches in one flowing chain. Step in on the cross, roll out of trouble, pivot to the side at the end. Smooth first, faster every 30 seconds.',
       tips: ['Smooth first, then speed up.', 'Feet reset between combos.', 'Breathe, do not hold it.'] },
     { name: 'Speed endurance',
-      combos: [{ t: ['1', '2', '1', '2', 'shuffle in', 'shuffle out'] }, { label: 'Combo 12', t: ['step in', '3', '2', '3', 'step back'] }],
+      combos: [{ t: ['1', '2', '1', '2', 'shuffle in', 'shuffle out'] }, { label: 'Combo 12', t: ['step in', '3', '2', '3', 'step back'] }, { label: 'Combo 11', t: ['1', '2', '3', '2', 'pivot right', 'step back'] }],
       coach: 'Rapid fire with quick feet. Shuffle in as you throw, shuffle out as you finish. Every 30 seconds, sprint for five seconds.',
       tips: ['Fast feet, relaxed shoulders.', 'Keep the punches short.', 'Breathe out with every punch.'],
       marks: [{ at: 0, say: 'Sprint!', combo: 'cycle' }, { at: 5, say: 'Settle, keep moving.' }, { at: 15, tip: 'cycle' }] },
     { name: 'Finisher',
-      combos: [{ label: 'Build your own', t: ['1', 'step in', '2', '3', '2', 'pivot left', 'slip right', '1', '2', 'step back'] }],
+      combos: [{ label: 'Build your own', t: ['1', 'step in', '2', '3', '2', 'pivot left', 'slip right', '1', '2', 'step back'] }, { label: 'Combo 6', t: ['step in', '2', '3', '2', 'circle left'] }, { label: 'Combo 12', t: ['step in', '3', '2', '3', 'step back'] }],
       coach: 'No rules. Mix everything you know. Punch, move, punch. In the last thirty seconds, give me everything.',
       tips: ['Keep your hands up.', 'Move your feet between combos.', 'Do not stop.'],
       marks: [{ at: 0, block: 5, say: 'Last thirty seconds. Everything you have. Go!' }, { at: 0, combo: 'cycle' }, { at: 15, tip: 'cycle' }] }
@@ -843,6 +852,9 @@ h1 {
   var muted = false, voiceOn = true, tickOn = true;
   var lastSec = null, timer = null, cardKey = '', ac = null, wl = null, speakTimer = null;
   var hasSpeech = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+
+  function setIn(el, key, html) { if (el._k !== key) { el._k = key; el.innerHTML = html; } }
+  function icon(n) { return '<svg class="ic" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; }
 
   function fmt(s) {
     s = Math.max(0, Math.floor(s));
@@ -957,76 +969,114 @@ h1 {
     var p = phases[idx];
     var elapsed = p.dur - sec;
     if (p.type === 'work' && elapsed > 0 && sec > 3 && sec !== 10) coachMark(p.round, elapsed);
-    if (sec >= 1 && sec <= 3) { play('beep'); return; }
-    if (p.type === 'work' && sec === 10) {
-      play('warn'); play('warn', 0.18);
-      speak('Ten seconds', 300);
+    if (sec >= 1 && sec <= 3) {
+      if (hasSpeech && voiceOn && !muted) countSay(['', 'one', 'two', 'three'][sec]); else play('beep');
       return;
     }
-    if (p.type === 'rest' && sec === 5) { speak('Get ready', 0); return; }
-    if (p.type === 'work' && elapsed > 0 && elapsed % 30 === 0) { play('block'); return; }
-    if (tickOn) play('tick');
+    if (p.type === 'work' && sec === 10) {
+      play('warn');
+      speak('Ten seconds', 450);
+      return;
+    }
+    if (p.type === 'rest' && sec === 5) { speak('Get ready', 0, false, true); return; }
+    if (p.type === 'work' && elapsed > 0 && elapsed % 30 === 0) { if (!isSpeaking()) play('block'); return; }
+    if (tickOn && !isSpeaking()) play('tick');   /* the tick stays quiet while the coach talks */
   }
 
   /* ---------- Voice ---------- */
+  var spk = 0;   /* phrases queued or being spoken right now */
+  function isSpeaking() { return spk > 0 || !!speakTimer; }
   function cancelSpeech() {
     clearTimeout(speakTimer);
+    speakTimer = null;
+    spk = 0;
+    speechTok++;
     try { if (hasSpeech) window.speechSynthesis.cancel(); } catch (e) {}
   }
   /* A natural voice: prefer premium / enhanced / Siri English voices (Australian first), speak one
      sentence at a time so the pauses sound human, and keep the pace a little slower than default. */
   var voicePick = null;
   var BAD_VOICE = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|hysterical|princess|pipe/i;
+  var LANG = /^en/i.test(navigator.language || '') ? navigator.language : 'en-AU';
   function pickVoice() {
     if (voicePick) return voicePick;
     var list = [];
     try { list = window.speechSynthesis.getVoices() || []; } catch (e) {}
-    var best = null, bs = -1;
+    var best = null, bs = 0;
     list.forEach(function (v) {
       if (!/^en[-_]/i.test(v.lang) || BAD_VOICE.test(v.name)) return;
       var n = v.name + ' ' + (v.voiceURI || ''), sc = 0;
-      if (/premium/i.test(n)) sc += 12; else if (/enhanced|neural|natural/i.test(n)) sc += 10; else if (/siri/i.test(n)) sc += 8;
-      if (/en[-_]AU/i.test(v.lang)) sc += 4; else if (/en[-_](GB|US)/i.test(v.lang)) sc += 3; else sc += 1;
-      if (v.localService) sc += 1;
+      if (/premium/i.test(n)) sc = 12; else if (/enhanced|neural|natural/i.test(n)) sc = 10; else if (/siri/i.test(n)) sc = 8;
+      if (!sc) return;
+      if (/en[-_]AU/i.test(v.lang)) sc += 3; else if (/en[-_](GB|US)/i.test(v.lang)) sc += 2;
       if (sc > bs) { bs = sc; best = v; }
     });
-    if (best) voicePick = best;
+    if (best) voicePick = best;   /* otherwise the phone's own default voice is used, the one you hear in other apps */
     return best;
   }
   try { if (hasSpeech) window.speechSynthesis.addEventListener('voiceschanged', function () { voicePick = null; }); } catch (e) {}
-  function speak(text, delay, force, rate) {
+  /* Speech is a queue of short phrases with timed gaps, so it sounds like a PT calling a session:
+     each punch is its own call with a beat between, and sentences have room to breathe. */
+  var synth = hasSpeech ? window.speechSynthesis : null, speechTok = 0;
+  function sentences(text) {
+    var out = [], cur = '';
+    (String(text).replace(/\s+/g, ' ').match(/[^.!?]+[.!?]*/g) || []).forEach(function (x) {
+      x = x.trim();
+      if (!x) return;
+      if (cur && (cur + ' ' + x).length > 150) { out.push({ t: cur }); cur = x; } else cur = cur ? cur + ' ' + x : x;
+    });
+    if (cur) out.push({ t: cur });
+    return out;
+  }
+  function comboItems(c) { return [{ t: spokenCombo(c) }]; }
+  /* Phrases go to the phone's speech queue together, so they flow without gaps from timers.
+     A short pause after any cancel keeps the phone from garbling the next phrase. A soft call is
+     dropped if the coach is already talking, so it never cuts them off mid-word. */
+  function speakSeq(items, delay, force, soft) {
     if (!hasSpeech) return;
     if (!force && (muted || !voiceOn)) return;
-    clearTimeout(speakTimer);
-    try { window.speechSynthesis.cancel(); } catch (e) {}
+    if (soft && isSpeaking()) return;
+    cancelSpeech();
+    var tok = speechTok;
     speakTimer = setTimeout(function () {
-      try {
-        var parts = String(text).replace(/\s+/g, ' ').match(/[^.!?]+[.!?]*/g) || [String(text)];
-        var v = pickVoice();
-        parts.forEach(function (part) {
-          part = part.trim();
-          if (!part) return;
-          var u = new SpeechSynthesisUtterance(part);
-          if (v) { u.voice = v; u.lang = v.lang; }
-          u.rate = rate || 0.97;
+      speakTimer = null;
+      var v = pickVoice(), acc = 0;
+      items.forEach(function (it) {
+        var done = false;
+        function fin() { if (done) return; done = true; if (tok === speechTok && spk > 0) spk--; }
+        try {
+          var u = new SpeechSynthesisUtterance(it.t);
+          if (v) { u.voice = v; u.lang = v.lang; } else u.lang = LANG;
+          u.rate = it.r || 0.96;
           u.pitch = 1;
           u.volume = 1;
-          window.speechSynthesis.speak(u);
-        });
-      } catch (e) {}
-    }, delay || 0);
+          u.onend = fin; u.onerror = fin;
+          spk++;
+          synth.speak(u);
+          acc += it.t.length * 95 + 800;
+          setTimeout(fin, acc + 2000);   /* safety: some phones never fire onend */
+        } catch (e) { fin(); }
+      });
+    }, Math.max(delay || 0, 110));
   }
+  function speak(text, delay, force, soft) { speakSeq(sentences(text), delay, force, soft); }
+  function countSay(word) { speakSeq([{ t: word, r: 1 }], 0); }
   function spokenCombo(c) {
     return c.t.map(function (x) { return PUNCH[x] ? PUNCH[x].say : x.replace('°', ' degrees'); }).join(', ') + '.';
   }
   function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
-  function roundScript(i) {
-    var r = ROUNDS[i];
-    return 'Round ' + (i + 1) + '. ' + r.name + '. ' + r.coach + (r.combos.length ? ' First combo. ' + spokenCombo(r.combos[0]) : '');
+  function roundItems(i) {
+    var r = ROUNDS[i], out = [{ t: 'Round ' + (i + 1) + '. ' + r.name + '.' }];
+    out = out.concat(sentences(r.coach));
+    if (r.combos.length) out.push({ t: 'First combo. ' + spokenCombo(r.combos[0]) });
+    return out;
   }
   function announce(p) {
-    if (p.type === 'work') speak(roundScript(p.round), 1000);
-    else speak('Rest. Shake it out. Next up, round ' + (p.round + 2) + ', ' + ROUNDS[p.round + 1].name + '. ' + ROUNDS[p.round + 1].coach, 800);
+    if (p.type === 'work') speakSeq(roundItems(p.round), 1000);
+    else {
+      var nx = ROUNDS[p.round + 1];
+      speakSeq([{ t: 'Rest. Shake it out.' }, { t: 'Next up, round ' + (p.round + 2) + '. ' + nx.name + '.' }].concat(sentences(nx.coach)), 800);
+    }
   }
 
   /* Coach calls during a round: each mark fires at a second inside a 30-second block. */
@@ -1039,17 +1089,17 @@ h1 {
       var m = marks[i];
       if (m.at !== pos) continue;
       if (m.block !== undefined && m.block !== bi) continue;
-      var parts = [];
-      if (m.say) parts.push(m.say);
+      var parts = [], items = [];
+      if (m.say) { parts.push(m.say); items = items.concat(sentences(m.say, 450)); }
       if (m.combo !== undefined && r.combos.length) {
-        var ci = m.combo === 'cycle' ? bi % r.combos.length : m.combo;
+        var ci = m.combo === 'cycle' ? bi % r.combos.length : (Array.isArray(m.combo) ? m.combo[bi % m.combo.length] : m.combo);
         parts.push(spokenCombo(r.combos[ci]));
+        items = items.concat(comboItems(r.combos[ci]));
       }
-      if (m.tip && r.tips && r.tips.length) parts.push(r.tips[bi % r.tips.length]);
+      if (m.tip && r.tips && r.tips.length) { var tp = r.tips[bi % r.tips.length]; parts.push(tp); items = items.concat(sentences(tp, 450)); }
       if (!parts.length) continue;
-      var text = parts.join(' ');
-      showCall(text);
-      speak(text, pos === 0 ? 450 : 0, false, 1.04);
+      showCall(parts.join(' '));
+      speakSeq(items, pos === 0 ? 450 : 0, false, true);
       return;
     }
   }
@@ -1248,10 +1298,10 @@ h1 {
     app.setAttribute('data-phase', finished ? 'rest' : p.type);
 
     if (finished) {
-      phaseName.textContent = 'Done';
+      setIn(phaseName, 'done', icon('bolt') + '<span>Done</span>');
       roundNum.textContent = N + ' rounds complete';
     } else {
-      phaseName.textContent = p.type === 'work' ? 'Work' : 'Rest';
+      setIn(phaseName, p.type, p.type === 'work' ? icon('bolt') + '<span>Work</span>' : icon('moon') + '<span>Rest</span>');
       roundNum.textContent = p.type === 'work' ? 'Round ' + (p.round + 1) + ' of ' + N : 'Next: round ' + (p.round + 2) + ' of ' + N;
     }
 
@@ -1280,11 +1330,11 @@ h1 {
 
     var active = started && !finished;
     var actLabel = active ? 'Stop' : (finished ? 'Restart' : (roundZero ? 'Set time' : 'Start'));
-    actEl.textContent = actLabel;
+    setIn(actEl, actLabel, icon(active ? 'stop' : (finished ? 'replay' : 'play')) + '<span>' + actLabel + '</span>');
     startBtn.classList.toggle('stop', active);
     startBtn.setAttribute('aria-label', actLabel + ', ' + phaseName.textContent + ' ' + fmt(secs));
     pauseBtn.disabled = !active;
-    pauseBtn.textContent = running ? 'Pause' : (active ? 'Resume' : 'Pause');
+    setIn(pauseBtn, running + ':' + active, running ? icon('pause') + '<span>Pause</span>' : (active ? icon('play') + '<span>Resume</span>' : icon('pause') + '<span>Pause</span>'));
     backBtn.disabled = !finished && idx === 0 && remaining === durMs;
     skipBtn.disabled = finished;
     wRoundEl.classList.toggle('locked', active);
@@ -1309,7 +1359,9 @@ h1 {
 
   function setToggle(btn, label, on) {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    btn.textContent = label + (on ? ' on' : ' off');
+    var ic = btn.getAttribute('data-ic');
+    if (ic) btn.querySelector('use').setAttribute('href', '#i-' + ic + (on ? '' : '-off'));
+    btn.lastElementChild.textContent = label + (on ? ' on' : ' off');
   }
 
   /* ---------- Wiring ---------- */
@@ -1338,7 +1390,7 @@ h1 {
   skipBtn.addEventListener('click', skip);
   sayBtn.addEventListener('click', function () {
     if (finished) return;
-    speak(roundScript(cardRound()), 0, true);
+    speakSeq(roundItems(cardRound()), 0, true);
   });
   tSound.addEventListener('click', function () {
     muted = !muted;
@@ -1359,7 +1411,7 @@ h1 {
     muted = false; setToggle(tSound, 'Sound', true);
     play('bell');
     setTimeout(function () { webFallback('beep'); }, 1600);
-    if (hasSpeech) speak('Sound check. Jab, cross, slip left.', 2600, true);
+    if (hasSpeech) speakSeq([{ t: 'Sound check. Three, two, one. Jab, cross, slip left.' }], 2600, true);
     var voices = 0;
     try { voices = window.speechSynthesis.getVoices().length; } catch (e) {}
     var note = 'Playing 1) a bell, 2) a beep, 3) ' + (hasSpeech ? 'a voice line' : 'no voice (not supported here)') + '. Web Audio: ' + (ac ? ac.state : 'unavailable') + '. Voices: ' + (hasSpeech ? voices : 'none') + '.';
@@ -1374,16 +1426,14 @@ h1 {
       }
     } catch (e) { audioNote.textContent = note + ' Media player: error.'; }
   });
-  if (!hasSpeech) { tVoice.disabled = true; tVoice.setAttribute('aria-pressed', 'false'); tVoice.textContent = 'Voice unavailable'; }
+  if (!hasSpeech) { tVoice.disabled = true; tVoice.setAttribute('aria-pressed', 'false'); tVoice.lastElementChild.textContent = 'Voice unavailable'; }
 
   /* ---------- Round / Rest wheels: looping 3D drums, 0:00 to 60:00 in 0:30 steps ---------- */
   function makeWheel(el, o) {
     var H = o.H || 40, STEP = o.STEP || 24, SLOTS = o.SLOTS || 4;
-    var R = H / (2 * Math.tan(STEP * Math.PI / 360));
     var count = o.count;
     var drum = document.createElement('div');
     drum.className = 'drum';
-    drum.style.transform = 'translateZ(' + (-R).toFixed(1) + 'px)';
     var nodes = [];
     for (var k = 0; k < SLOTS * 2 + 1; k++) {
       var nd = document.createElement('div');
@@ -1399,10 +1449,11 @@ h1 {
       var base = Math.round(pos);
       for (var k = 0; k < nodes.length; k++) {
         var idx = base + k - SLOTS, d = idx - pos, a = d * STEP, n = nodes[k];
-        if (Math.abs(a) > 96) { n.style.visibility = 'hidden'; continue; }
+        var ad = Math.abs(d);
+        if (ad > 1.8) { n.style.visibility = 'hidden'; continue; }
         n.style.visibility = 'visible';
-        n.style.transform = 'rotateX(' + (-a).toFixed(2) + 'deg) translateZ(' + R.toFixed(1) + 'px)';
-        n.style.opacity = Math.pow(Math.max(0, Math.cos(a * Math.PI / 180)), 2.4).toFixed(3);
+        n.style.transform = 'translateY(' + (d * H).toFixed(1) + 'px)';
+        n.style.opacity = Math.max(0, 1 - ad * 0.5).toFixed(3);
         var v = mod(idx), sel = Math.abs(d) < 0.5;
         if (n._v !== v) { n._v = v; n.textContent = o.format(v); }
         if (n._s !== sel) { n._s = sel; n.classList.toggle('sel', sel); }
