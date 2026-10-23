@@ -1,5 +1,5 @@
 /* Offline cache for Shadow Boxing Clock. Bump CACHE when you change any file. */
-var CACHE = 'boxing-clock-v12';
+var CACHE = 'boxing-clock-v13';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 var FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
